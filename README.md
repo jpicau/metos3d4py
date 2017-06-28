@@ -1,55 +1,55 @@
-# metos3d
+# Metos3D
 Marine Ecosystem Toolkit for Optimization and Simulation in 3-D
 
 # Introducing Metos3D version 1.0.0
-following [sematic versioning]() ...
-known as: **major.minor.patch** ...
-
-a change in major version, means loss of compatibility
+following [sematic versioning]() (**major.minor.patch**),
+change in major version means loss of compatibility
 
 we hybernated the development of Metos3D in separated repositories,
-the avaiable versions are:
-
-<!--```
-metos3d v0.6.*
-simpack v0.6.*
-model   v0.4.*
-data    v0.2.*
-```
--->
-- `metos3d v0.6.*`
-- `simpack v0.6.*`
-- `model   v0.4.*`
-- `data    v0.2.*`
-
-
-<table>
-<td>...</td>
-</table>
-
-<dl>
-<dt>Definition list</dt>
-<dd>Is something people use sometimes.</dd>
-
-<dt>Markdown in HTML</dt>
-<dd>Does *not* work **very** well. Use HTML <em>tags</em>.</dd>
-</dl>
-
+the last avaiable versions were: `metos3d v0.6.0`, `simpack v0.5.0`, `model v0.4.0` and `data v0.2.1`
 all git repositories were archieved as one file and can be downloaded [here](),
 each repo includes its earlier versions,
-access to versions use in [Piwonski and Slawig, 2016]()
+in particular access to versions used in [Piwonski and Slawig, 2016]()
 
 # New concept
 Metos3D 1.0.0 introduces a new concept of usage,
 one repository,
 
-we distinguish ??? installation types:
+we distinguish two installation types:
 
-- container/executable, easy to install and use, hard coded, one for each model, inflexible
-- script/system, requires [mpi versions of c and fortran compilers](), as well as a compiled version of [petsc](), fully flexible
+- container, easy to install and use, hard-coded,
+    one executable for each model, inflexible,
+    including everything, huge 
+- script/system, requires [mpi versions of c and fortran compilers](),
+    as well as a compiled version of [petsc](),
+    fully flexible, lean
 
-
+# Documentation
+- beginners tutorial
+- manual
+- code documentation 
 
 # References
 - [Piwonski and Slawig, 2016]() Metos3D: ...
 
+
+
+
+<!---->
+<!--DUMP-->
+<!---->
+
+<!--<table>-->
+<!--<tr>-->
+<!--<td>metos3d</td><td>v0.6.*</td>-->
+<!--</tr>-->
+<!--<tr>-->
+<!--<td>simpack</td><td>v0.6.*</td>-->
+<!--</tr>-->
+<!--<tr>-->
+<!--<td>model  </td><td>v0.4.*</td>-->
+<!--</tr>-->
+<!--<tr>-->
+<!--<td>data   </td><td>v0.2.*</td>-->
+<!--</tr>-->
+<!--</table>-->
