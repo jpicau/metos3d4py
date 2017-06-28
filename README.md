@@ -2,33 +2,46 @@
 Marine Ecosystem Toolkit for Optimization and Simulation in 3-D
 
 # Introducing Metos3D version 1.0.0
-following [sematic versioning]()
-
-known as: **major.minor.patch**
+following [sematic versioning]() ...
+known as: **major.minor.patch** ...
 
 a change in major version, means loss of compatibility
 
 we hybernated the development of Metos3D in separated repositories,
-`...`
-the last avaiable versions are:
+the avaiable versions are:
 
-| metos3d	| 0.* |
-|..|..|
-<!--[Prototype table]-->
+<!--```
+metos3d v0.6.*
+simpack v0.6.*
+model   v0.4.*
+data    v0.2.*
+```
+-->
+- `metos3d v0.6.*`
+- `simpack v0.6.*`
+- `model   v0.4.*`
+- `data    v0.2.*`
 
-- `simpack 0.*`
-- `model 0.*`
-- `data 0.*`
 
-- `metos3d 0.*`
-- `simpack 0.*`
-- `model 0.*`
-- `data 0.*`
+<table>
+<td>...</td>
+</table>
 
-they whole git repositories were archieved and can be downloaded [here]()
+<dl>
+<dt>Definition list</dt>
+<dd>Is something people use sometimes.</dd>
+
+<dt>Markdown in HTML</dt>
+<dd>Does *not* work **very** well. Use HTML <em>tags</em>.</dd>
+</dl>
+
+all git repositories were archieved as one file and can be downloaded [here](),
+each repo includes its earlier versions,
+access to versions use in [Piwonski and Slawig, 2016]()
 
 # New concept
 Metos3D 1.0.0 introduces a new concept of usage,
+one repository,
 
 we distinguish ??? installation types:
 
