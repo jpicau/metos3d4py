@@ -25,6 +25,7 @@ we distinguish two installation types:
     fully flexible, lean
 
 # Documentation
+- cheat sheet
 - beginners tutorial
 - manual
 - code documentation 
