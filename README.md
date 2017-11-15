@@ -1,5 +1,81 @@
 # Metos3D
-Marine Ecosystem Toolkit for Optimization and Simulation in 3-D
+
+**Marine Ecosystem Toolkit for Optimization and Simulation in 3-D**
+
+## Installer
+
+```
+$>
+curl -O https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+bash Miniconda3-latest-Linux-x86_64.sh
+
+conda install -c jpicau metos3d
+```
+
+## Base system
+
+You've cloned the base Metos3D system. This includes ...
+
+```
+metos3d         # work horse, Python script
+src/            # transport driver, C code
+model/          # bgc models, Fortran code
+```
+
+## Environment
+
+Metos3D needs a sane compile environment, this includes ...
+
+*If you are working on a known machine and want to use one of the standard models,
+have a look at our [environment section](), we have prepared a set of standard versions,*
+
+however, if you want the full control, you'll need,
+*sequential* execution:
+C/C++, Fortran compiler,
+*parallel* execution,
+MPI versions of C/C++,
+
+with those compilers,
+a compiled PETSc library,
+version 3.7., which means,
+two environment variables set,
+named `PETSC_DIR` and `PETSC_ARCH`,
+
+## Data
+
+You're missing the data, yet. You can clone it.
+However, you'll need Git LFS (large file support).
+
+```
+$> git clone http://
+```
+
+or
+you can download an compressed archive, using `curl` or `wget`
+
+```
+$> wget https://
+$> curl -O https://
+```
+unzip,
+
+
+## Compile and run
+
+Now, you can ...
+compile an executable and run a simulation
+
+for instance:
+
+```
+$> metos3d simpack NPZD-DOP
+$> ./metos3d-simpack-NPZD-DOP.exe model/NPZD-DOP/option/test.NPZD-DOP.option.yaml
+```
+
+see [Metos3D cheat sheet]() for a detailed reference of the subcommands of the `metos3d` script,
+
+
+
 
 # Introducing Metos3D version 1.0.0
 following [sematic versioning]() (**major.minor.patch**),
@@ -25,10 +101,10 @@ we distinguish two installation types:
     fully flexible, lean
 
 # Documentation
-- cheat sheet
-- beginners tutorial
+- cheat sheet, BGC cheat sheet, templates
+- tutorial
 - manual
-- code documentation 
+- code reference
 
 # References
 - [Piwonski and Slawig, 2016]() Metos3D: ...
@@ -54,3 +130,4 @@ we distinguish two installation types:
 <!--<td>data   </td><td>v0.2.*</td>-->
 <!--</tr>-->
 <!--</table>-->
+~~~~

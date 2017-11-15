@@ -20,11 +20,11 @@
 try:
     print(__name__)
 except:
-    print("__name__ didi not work ...")
+    print("__name__ did not work ...")
 
 try:
     print(__file__)
 except:
-    print("__file__ didi not work ...")
+    print("__file__ did not work ...")
 
 

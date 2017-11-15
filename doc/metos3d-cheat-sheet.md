@@ -26,7 +26,10 @@ AGE ZERO ...
 Lists all models from the `model` repository.
 
 ## `matrix` – subcommand
+reference, technical report,
+
 ## `update` – subcommand
+
 ## `info` – subcommand
 
 
