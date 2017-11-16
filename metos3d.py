@@ -20,9 +20,8 @@ import sys
 import metos3d as m3d
 
 if __name__ == "__main__":
-    print("metos3d v" + m3d.version)
-    
+    print("metos3d version " + m3d.version)
+
     m3d.init(sys.argv)
     m3d.run()
     m3d.final()
-
