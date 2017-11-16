@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #
 # Metos3D: A Marine Ecosystem Toolkit for Optimization and Simulation in 3-D
 # Copyright (C) 2017  Jaroslaw Piwonski, CAU, jpi@informatik.uni-kiel.de
@@ -17,14 +16,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-try:
-    print(__name__)
-except:
-    print("__name__ did not work ...")
+import sys
+import metos3d as m3d
 
-try:
-    print(__file__)
-except:
-    print("__file__ did not work ...")
-
+if __name__ == "__main__":
+    print("metos3d v" + m3d.version)
+    
+    m3d.init(sys.argv)
+    m3d.run()
+    m3d.final()
 
