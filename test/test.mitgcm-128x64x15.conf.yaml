@@ -1,0 +1,74 @@
+#
+# Metos3D: A Marine Ecosystem Toolkit for Optimization and Simulation in 3-D
+# Copyright (C) 2017  Jaroslaw Piwonski, CAU, jpi@informatik.uni-kiel.de
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+Debug level:    3
+
+Grid file:      mitgcm-128x64x15/grid.nc
+
+Time step:
+    Start:      0.0
+    Count:      2880
+    Step:       0.0003472222222222
+
+Solver:
+    Type:       Spinup
+    Count:      3000
+    Monitor:    on
+
+Bgc model:
+
+    Name:       N
+
+    Tracer:
+        Name, Value, Unit, Description:
+            - [N,   2.14,   mmol P m-3, phosphate]
+        Input:  test/N.nc
+        Output: test/N.nc
+      
+    Parameter:
+        Name, Value, Unit, Description:
+            - [kw,  0.02,   m-1,        attenuation by water]
+            - [muP, 2.0,    d-1,        growth rate]
+            - [KN,  0.5,    mmol P m-3, half saturation phosphate]
+            - [KI,  30.0,   W m-2,      half saturation light]
+            - [b,   0.858,  1,          martin exponent]
+
+    Boundary data:
+        Path:  mitgcm-128x64x15/
+        Name, Count, Description, Unit, File:
+            - [fice, 12, ice cover fraction, 1,      fice.nc]
+            - [wind, 12, wind speed at 10m,  m s-1,  wind.nc]
+            - [dust, 12, dust deposition,    kg m-2, dust.nc]
+
+    Domain data:
+        Path:  mitgcm-128x64x15/
+        Name, Count, Description, Unit, File:
+            - [salt, 12, salinity,       psu,            salt.nc]
+            - [temp, 12, temperature,    degree celcius, temp.nc]
+
+Transport matrix:
+    Path:  mitgcm-128x64x15/
+    Name, Count, Type, File:
+        - [Aexp, 12, explicit, Aexp.nc]
+        - [Aimp, 12, implicit, Aimp.nc]
+
+
+
+
+
+

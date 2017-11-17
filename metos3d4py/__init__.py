@@ -17,24 +17,16 @@
 #
 
 """
-    Metos3D
-    =======
+    Metos3D for Python
+    ==================
     
-    Marine Ecosystem Toolkit for Optimization and Simulation in 3-D
-    
-    [Piwonski and Slawig, 2016]
-    https://www.geosci-model-dev.net/9/3729/2016/
+    This is a Python version of Metos3D.
     
 """
 
-import sys
-import metos3d4py as m3d
+from ._version import version
+from .metos3d4py import Metos3D
 
-if __name__ == "__main__":
-    sim = m3d.Metos3D()
-    
-    sim.init(sys.argv)
-    sim.run()
-    sim.final()
+__all__ = ["version", "Metos3D"]
 
 

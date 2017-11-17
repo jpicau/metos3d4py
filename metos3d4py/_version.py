@@ -17,24 +17,12 @@
 #
 
 """
-    Metos3D
-    =======
+    _version
     
-    Marine Ecosystem Toolkit for Optimization and Simulation in 3-D
-    
-    [Piwonski and Slawig, 2016]
-    https://www.geosci-model-dev.net/9/3729/2016/
-    
+    Hard-coded version as text in a variable that can be imported.
+
 """
 
-import sys
-import metos3d4py as m3d
-
-if __name__ == "__main__":
-    sim = m3d.Metos3D()
-    
-    sim.init(sys.argv)
-    sim.run()
-    sim.final()
+version = "0.0.0"
 
 
