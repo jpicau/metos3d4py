@@ -17,16 +17,13 @@
 #
 
 """
-    Metos3D for Python
-    ==================
-    
-    This is a Python version of Metos3D.
-    
-"""
+    Bgc submodule
+    ==============
+        
+    """
 
-from metos3d4py.version import VERSION
-from metos3d4py.metos3d4py import Metos3D
+from metos3d4py.bgc.bgc import Bgc
 
-__all__ = ["VERSION", "Metos3D"]
+__all__ = ["Bgc"]
 
 

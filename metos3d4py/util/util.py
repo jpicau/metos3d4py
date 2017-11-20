@@ -1,0 +1,69 @@
+#
+# Metos3D: A Marine Ecosystem Toolkit for Optimization and Simulation in 3-D
+# Copyright (C) 2017  Jaroslaw Piwonski, CAU, jpi@informatik.uni-kiel.de
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+from petsc4py import PETSc
+
+# ----------------------------------------------------------------------------------------
+def _print_usage(comm):
+    if comm.rank == 0:
+        print("usage:\n  python metos3d.py [conf-yaml-file]")
+        print("example:\n  python metos3d.py test/test.mitgcm-128x64x15.conf.yaml")
+
+# ----------------------------------------------------------------------------------------
+def _print_error(comm, msg):
+    if comm.rank == 0:
+        print("### ERROR ### {}".format(msg))
+
+# ----------------------------------------------------------------------------------------
+def _print_message(comm, msg):
+    if comm.rank == 0:
+        print(msg)
+
+# ----------------------------------------------------------------------------------------
+def _print_message_synch(comm, msg):
+    print(msg)
+#    if comm.rank == 0:
+#        size = comm.size
+#        msg = [[]]*size
+##        receive
+#        for i in range(size):
+#            _print_message(comm, msg[i])
+#    else:
+#        pass
+##        send
+
+# ----------------------------------------------------------------------------------------
+def _interpolate(n, t):
+    '''
+        _interpolate
+        
+        n:  number of intervals [0,1] is devided into
+        t:  point in time (in [0,1])
+        
+        compute the interpolation coefficients and indices on the fly
+        
+        '''
+    
+    w = t * n + 0.5
+    beta = math.fmod(w, 1.0)
+    alpha = (1.0 - beta)
+    ibeta = int(math.fmod(math.floor(w), n))
+    ialpha = int(math.fmod(math.floor(w) + n - 1, n))
+    
+    return alpha, ialpha, beta, ibeta
+

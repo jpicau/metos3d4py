@@ -17,12 +17,13 @@
 #
 
 """
-    _version
-    
-    Hard-coded version as text in a variable that can be imported.
+    Grid submodule
+    ==============
+        
+    """
 
-"""
+from metos3d4py.grid.grid import Grid
 
-version = "0.0.0"
+__all__ = ["Grid"]
 
 

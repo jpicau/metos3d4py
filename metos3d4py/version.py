@@ -17,16 +17,12 @@
 #
 
 """
-    Metos3D for Python
-    ==================
+    version.py
     
-    This is a Python version of Metos3D.
-    
+    Hard-coded/constant version string in a variable that can be imported.
+
 """
 
-from metos3d4py.version import VERSION
-from metos3d4py.metos3d4py import Metos3D
-
-__all__ = ["VERSION", "Metos3D"]
+VERSION = "0.0.0"
 
 
