@@ -26,7 +26,8 @@
 
 from ._version import version
 from .metos3d4py import Metos3D
+from Grid import Grid
 
-__all__ = ["version", "Metos3D"]
+__all__ = ["version", "Metos3D", "Grid"]
 
 
