@@ -16,14 +16,27 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-"""
-    BGC submodule
-    ==============
-        
+class Solver:
     """
+        Solver class
+        
+        Solver context
+        
+        Attributes:
+            nl          model years
 
-from metos3d4py.bgc.bgc import BGC
+        """
 
-__all__ = ["BGC"]
+# ----------------------------------------------------------------------------------------
+
+    def init(self, comm, conf):
+        
+        self.nl = conf.dict["Solver"]["Count"]
+
+# ----------------------------------------------------------------------------------------
+
+    def __str__(self):
+        return "Solver:\n  nl: {}".format(self.nl)
+        
 
 

@@ -19,9 +19,9 @@
 import numpy
 from petsc4py import PETSc
 
-class Bgc:
+class BGC:
     """
-        Bgc class
+        BGC class
         
         biogeochemical model context
         
@@ -44,10 +44,10 @@ class Bgc:
 
     def _init_tracer(self, conf, grid, load):
         
-        name = conf.dict["Bgc model"]["Name"]
-        tracer = conf.dict["Bgc model"]["Tracer"]["Name, Value, Unit, Description"]
-        input = conf.dict["Bgc model"]["Tracer"]["Input"]
-        output = conf.dict["Bgc model"]["Tracer"]["Output"]
+        name = conf.dict["BGC"]["Name"]
+        tracer = conf.dict["BGC"]["Tracer"]["Name, Value, Unit, Description"]
+        input = conf.dict["BGC"]["Tracer"]["Input"]
+        output = conf.dict["BGC"]["Tracer"]["Output"]
         
         nv = grid.nv
         nvloc = load.nvloc
@@ -85,7 +85,7 @@ class Bgc:
     def _init_parameter(self, conf):
 
         # list of parameters
-        parameter = conf.dict["Bgc model"]["Parameter"]["Name, Value, Unit, Description"]
+        parameter = conf.dict["BGC"]["Parameter"]["Name, Value, Unit, Description"]
         
         nu = len(parameter)
         u = []
@@ -102,8 +102,8 @@ class Bgc:
     def _init_boundary_data(self, conf, grid, load):
         
         # list of boundary data
-        boundary_list = conf.dict["Bgc model"]["Boundary data"]["Name, Count, Description, Unit, File"]
-        boundary_path = conf.dict["Bgc model"]["Boundary data"]["Path"]
+        boundary_list = conf.dict["BGC"]["Boundary data"]["Name, Count, Description, Unit, File"]
+        boundary_path = conf.dict["BGC"]["Boundary data"]["Path"]
 
         np = grid.np
         nploc = load.nploc
@@ -138,8 +138,8 @@ class Bgc:
     def _init_domain_data(self, conf, grid, load):
         
         # list of domain data
-        domain_list = conf.dict["Bgc model"]["Domain data"]["Name, Count, Description, Unit, File"]
-        domain_path = conf.dict["Bgc model"]["Domain data"]["Path"]
+        domain_list = conf.dict["BGC"]["Domain data"]["Name, Count, Description, Unit, File"]
+        domain_path = conf.dict["BGC"]["Domain data"]["Path"]
         
         nv = grid.nv
         nvloc = load.nvloc
@@ -183,7 +183,7 @@ class Bgc:
 # ----------------------------------------------------------------------------------------
 
     def __str__(self):
-        return "Bgc:\n  Tracer name:  {}\n  Tracer count: {}".format(self.name, self.ny)
+        return "BGC:\n  Model name:   {}\n  Tracer count: {}".format(self.name, self.ny)
         
 
 

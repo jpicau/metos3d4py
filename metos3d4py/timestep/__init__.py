@@ -17,13 +17,13 @@
 #
 
 """
-    BGC submodule
-    ==============
+    Time stepping submodule
+    =======================
         
     """
 
-from metos3d4py.bgc.bgc import BGC
+from metos3d4py.timestep.timestep import TimeStep
 
-__all__ = ["BGC"]
+__all__ = ["TimeStep"]
 
 

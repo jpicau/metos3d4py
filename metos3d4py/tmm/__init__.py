@@ -17,13 +17,13 @@
 #
 
 """
-    BGC submodule
-    ==============
+    TMM submodule
+    =============
         
     """
 
-from metos3d4py.bgc.bgc import BGC
+from metos3d4py.tmm.tmm import TMM
 
-__all__ = ["BGC"]
+__all__ = ["TMM"]
 
 

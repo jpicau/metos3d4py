@@ -17,13 +17,13 @@
 #
 
 """
-    Bgc submodule
-    ==============
+    Solver submodule
+    ===============
         
     """
 
-from metos3d4py.bgc.bgc import Bgc
+from metos3d4py.solver.solver import Solver
 
-__all__ = ["Bgc"]
+__all__ = ["Solver"]
 
 

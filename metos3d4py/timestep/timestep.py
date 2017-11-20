@@ -16,14 +16,31 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-"""
-    BGC submodule
-    ==============
-        
+class TimeStep:
     """
+        TimeStep class
+        
+        TimeStep context
+        
+        Attributes:
+            t0          start
+            nt          count
+            dt          step
 
-from metos3d4py.bgc.bgc import BGC
+        """
 
-__all__ = ["BGC"]
+# ----------------------------------------------------------------------------------------
+
+    def init(self, comm, conf):
+        
+        self.t0 = conf.dict["Time step"]["Start"]
+        self.nt = conf.dict["Time step"]["Count"]
+        self.dt = conf.dict["Time step"]["Step"]
+
+# ----------------------------------------------------------------------------------------
+
+    def __str__(self):
+        return "TimeStep:\n  t0: {}\n  nt: {}\n  dt: {}".format(self.t0, self.nt, self.dt)
+        
 
 

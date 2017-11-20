@@ -36,16 +36,24 @@ def _print_message(comm, msg):
 
 # ----------------------------------------------------------------------------------------
 def _print_message_synch(comm, msg):
-    print(msg)
-#    if comm.rank == 0:
-#        size = comm.size
-#        msg = [[]]*size
-##        receive
-#        for i in range(size):
-#            _print_message(comm, msg[i])
-#    else:
-#        pass
-##        send
+    
+    comm_mpi = comm.tompi4py()
+    size = comm.size
+    rank = comm.rank
+    
+    if size > 1:
+        if rank == 0:
+            msgs = []
+            msgs.append(str(msg))
+            for i in range(size-1):
+                req = comm_mpi.irecv(source=i+1, tag=i+1)
+                msgs.append(str(req.wait()))
+            _print_message(comm, "\n".join(msgs))
+        else:
+            req = comm_mpi.isend(msg, dest=0, tag=rank)
+            req.wait()
+    else:
+        _print_message(comm, msg)
 
 # ----------------------------------------------------------------------------------------
 def _interpolate(n, t):

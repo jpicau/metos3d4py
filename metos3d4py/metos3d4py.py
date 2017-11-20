@@ -35,8 +35,10 @@ from metos3d4py             import VERSION
 from metos3d4py.conf        import Conf
 from metos3d4py.grid        import Grid
 from metos3d4py.load        import Load
-from metos3d4py.bgc         import Bgc
-from metos3d4py.transport   import Transport
+from metos3d4py.bgc         import BGC
+from metos3d4py.tmm         import TMM
+from metos3d4py.timestep    import TimeStep
+from metos3d4py.solver      import Solver
 from metos3d4py.util.util   import _print_message, _print_message_synch
 
 class Metos3D:
@@ -57,6 +59,9 @@ class Metos3D:
             grid:
             load:
             bgc:
+            tmm:
+            timestep:
+            solver:
 
         Methods:
             init():     initialize metos3d context from a yaml configuration file
@@ -92,6 +97,9 @@ class Metos3D:
                 grid,
                 load,
                 bgc,
+                tmm,
+                timestep,
+                solver,
                 
             """
         
@@ -99,7 +107,7 @@ class Metos3D:
         self.comm       = comm      = PETSc.COMM_WORLD
         self.size       = size      = comm.size
         self.rank       = rank      = comm.rank
-                    
+        
         _print_message(comm, "metos3d version {} ".format(version))
         if size > 1:
             _print_message(comm, "parallel run, {} processes".format(size))
@@ -109,44 +117,27 @@ class Metos3D:
         self.conf       = conf      = Conf()
         self.grid       = grid      = Grid()
         self.load       = load      = Load()
-        self.bgc        = bgc       = Bgc()
-        self.transport  = transport = Transport()
-        
+        self.bgc        = bgc       = BGC()
+        self.tmm        = tmm       = TMM()
+        self.timestep   = timestep  = TimeStep()
+        self.solver     = solver    = Solver()
+
         conf.init(comm, argv)
         grid.init(comm, conf)
         load.init(comm, grid)
         bgc.init(comm, conf, grid, load)
-        transport.init(comm, conf, grid, load)
+        tmm.init(comm, conf, grid, load)
+        timestep.init(comm, conf)
+        solver.init(comm, conf)
         
         # debug
-#        _print_message(comm, conf)
-#        _print_message(comm, grid)
-#        _print_message_synch(comm, load)
-#        _print_message(comm, bgc)
-
-
-## transport ------------------------------------------------------------------------------------
-###self.Aexp, nexp
-###    self.Aexpj
-##        Aexp, nexp = _get_transport_explicit_conf()
-##        Aexpj = Aexp.duplicate()
-###self.Aimp, nimp
-###    self.Aimpj
-##        Aimp, nimp = _get_transport_implicit_conf()
-##        Aimpj = Aimp.duplicate()
-#        transport_list = self.conf.dict["Transport matrix"]["Name, Count, Type, File"]
-#        transport_patj = self.conf.dict["Transport matrix"]["Path"]
-#
-#
-## time step
-##        t0, nt, dt = _get_time_step_conf()
-#        self.t0 = self.conf.dict["Time step"]["Start"]
-#        self.nt = self.conf.dict["Time step"]["Count"]
-#        self.dt = self.conf.dict["Time step"]["Step"]
-#
-## solver ------------------------------------------------------------------------------------
-#        self.nl = self.conf.dict["Solver"]["Count"]
-#
+        _print_message(comm, conf)
+        _print_message(comm, grid)
+        _print_message_synch(comm, load)
+        _print_message(comm, bgc)
+        _print_message(comm, tmm)
+        _print_message(comm, timestep)
+        _print_message(comm, solver)
 
     def run(self):
         """

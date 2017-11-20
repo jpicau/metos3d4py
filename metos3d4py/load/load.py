@@ -31,8 +31,8 @@ import numpy
     """
 class Load:
     def init(self, comm, grid):
-        size = comm.size
-        rank = comm.rank
+        self.size = size = comm.size
+        self.rank = rank = comm.rank
         
         nv = grid.nv
         np = grid.np
@@ -58,6 +58,12 @@ class Load:
         self.nvprev = nvprev
 
     def __str__(self):
-        return "Load:\n  npprev, nploc: {} {}\n  nvprev, nvloc: {} {}".format(self.npprev, self.nploc, self.nvprev, self.nvloc)
+        text = ""
+        if self.rank == 0:
+            text = text + "Load:\n"
+        text = text + "  rank: {:3d}   ".format(self.rank)
+        text = text + "  npprev, nploc: {:5d} {:5d}   ".format(self.npprev, self.nploc)
+        text = text + "  nvprev, nvloc: {:7d} {:7d}   ".format(self.nvprev, self.nvloc)
+        return text
 
 

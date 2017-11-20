@@ -58,7 +58,7 @@ class Conf:
         else:
             _print_error(comm, "No configuration file given.")
             _print_usage(comm)
-            sys.exit(1)
+            sys.exit(0)
 
     def __str__(self):
         return "Conf:\n  Keys: {}".format(list(self.dict.keys()))

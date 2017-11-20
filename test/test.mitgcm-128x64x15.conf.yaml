@@ -30,7 +30,7 @@ Solver:
     Count:      3000
     Monitor:    on
 
-Bgc model:
+BGC:
 
     Name:       N
 
@@ -49,23 +49,23 @@ Bgc model:
             - [b,   0.858,  1,          martin exponent]
 
     Boundary data:
-        Path:  mitgcm-128x64x15/
+        Path:   mitgcm-128x64x15/
         Name, Count, Description, Unit, File:
             - [fice, 12, ice cover fraction, 1,      fice.nc]
             - [wind, 12, wind speed at 10m,  m s-1,  wind.nc]
             - [dust, 12, dust deposition,    kg m-2, dust.nc]
 
     Domain data:
-        Path:  mitgcm-128x64x15/
+        Path:   mitgcm-128x64x15/
         Name, Count, Description, Unit, File:
             - [salt, 12, salinity,       psu,            salt.nc]
             - [temp, 12, temperature,    degree celcius, temp.nc]
 
-Transport matrix:
-    Path:  mitgcm-128x64x15/
-    Name, Count, Type, File:
-        - [Aexp, 12, explicit, Aexp.nc]
-        - [Aimp, 12, implicit, Aimp.nc]
+TMM:
+    Path:       mitgcm-128x64x15/
+    # Name, Count, File
+    Explicit:   [Aexp, 12, Aexp.nc]
+    Implicit:   [Aimp, 12, Aimp.nc]
 
 
 
