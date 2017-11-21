@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import math
 import sys
 import h5py
 from petsc4py import PETSc
@@ -25,16 +26,19 @@ def _print_usage(comm):
     if comm.rank == 0:
         print("usage:\n  python metos3d.py [conf-yaml-file]")
         print("example:\n  python metos3d.py test/test.mitgcm-128x64x15.conf.yaml")
+        sys.stdout.flush()
 
 # ----------------------------------------------------------------------------------------
 def _print_error(comm, msg):
     if comm.rank == 0:
         print("### ERROR ### {}".format(msg))
+        sys.stdout.flush()
 
 # ----------------------------------------------------------------------------------------
 def _print_message(comm, msg):
     if comm.rank == 0:
         print(msg)
+        sys.stdout.flush()
 
 # ----------------------------------------------------------------------------------------
 def _print_message_synch(comm, msg):
@@ -58,7 +62,7 @@ def _print_message_synch(comm, msg):
         _print_message(comm, msg)
 
 # ----------------------------------------------------------------------------------------
-def _load_from_nc_file(comm, grid, yw, varfile, varname):
+def _set_from_nc_file(comm, grid, v, varfile, varname, index):
     
     try:
         file = h5py.File(varfile, "r")
@@ -74,8 +78,33 @@ def _load_from_nc_file(comm, grid, yw, varfile, varname):
         _print_message(comm, e)
         sys.exit(1)
 
-    start, end = yw.getOwnershipRange()
-    yw[start:end] = var[0,...][grid.mask3d][grid.nc2tmm][start:end]
+#    _print_message(comm, "{} {} {}".format(varname, index, var.shape))
+
+    start, end = v.getOwnershipRange()
+#    print("{} {}".format(start, end))
+
+    if index is not None:
+        # C order, slowest dim left
+        if len(var.shape) == 3:
+            # mask2d
+            v[start:end] = var[index,...][grid.mask2d][start:end]
+        elif len(var.shape) == 4:
+            # mask3d
+            v[start:end] = var[index,...][grid.mask3d][grid.nc2tmm][start:end]
+        else:
+            _print_error(comm, "Variable: {} required to be 2D or 3D. Shape is: {} With index: {}".format(varname, var.shape, index))
+    else:
+        if len(var.shape) == 2:
+            v[start:end] = var[...][grid.mask2d][start:end]
+        elif len(var.shape) == 3:
+            v[start:end] = var[...][grid.mask3d][grid.nc2tmm][start:end]
+        else:
+            _print_error(comm, "Variable: {} required to be 2D or 3D. Shape is: {} ".format(varname, var.shape))
+
+    file.close()
+
+#    _print_message_synch(comm, "{:3} {:7} {:7} {}".format(comm.rank, start, end, v[start:end][:4]))
+
 
 # ----------------------------------------------------------------------------------------
 def _interpolate(n, t):

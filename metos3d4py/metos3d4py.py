@@ -39,7 +39,7 @@ from metos3d4py.bgc         import BGC
 from metos3d4py.tmm         import TMM
 from metos3d4py.timestep    import TimeStep
 from metos3d4py.solver      import Solver
-from metos3d4py.util.util   import _print_message, _print_message_synch
+from metos3d4py.util.util   import _print_message, _print_message_synch, _interpolate
 
 class Metos3D:
     """
@@ -114,6 +114,7 @@ class Metos3D:
         else:
             _print_message(comm, "sequential run, {} process".format(size))
 
+        # create
         self.conf       = conf      = Conf()
         self.grid       = grid      = Grid()
         self.load       = load      = Load()
@@ -122,6 +123,7 @@ class Metos3D:
         self.timestep   = timestep  = TimeStep()
         self.solver     = solver    = Solver()
 
+        # init
         conf.init(comm, argv)
         grid.init(comm, conf)
         load.init(comm, grid)
@@ -159,35 +161,87 @@ class Metos3D:
             
         """
         pass
-#        t0, dt
-#        y0 = [y01, ..., y0ny]
-#        nl, nt, ny, nu, nb, nd, nexp, nimp
-#        y, u, b, d, Aexp, Aimp
-#        w
-#        for l in range(nl):
-#        for j in range(nt):
-#            tj = t0 + j*dt
-#
-#            for ib in range(nb):
-#                alpha, ialpha, beta, ibeta = _interpolate(nb[ib], tj)
-#                bj[ib] = alpha * b[ib, ialpha] + beta * b[ib, ibeta]
-#
-#            for id in range(nd):
-#                alpha, ialpha, beta, ibeta = _interpolate(nd[id], tj)
-#                dj[id] = alpha * d[id, ialpha] + beta * d[id, ibeta]
-#
-#            alpha, ialpha, beta, ibeta = _interpolate(nexp, tj)
-#            Aexpj = alpha * Aexp[ialpha] + beta * Aexp[ibeta]
-#
-#            alpha, ialpha, beta, ibeta = _interpolate(nimp, tj)
-#            Aimpj = alpha * Aimpj[ialpha] + beta * Aimpj[ibeta]
-#
-#            qj = bgc(dt, tj, yj, u, bj, dj)
-#            for i in range(ny):
-#                Aexpj.multAdd(yj[i], qj[i], w)
-#                Aimpj.mult(w, yj[i+1])
-#
-#            norm2 = norm2(yj[0] - yj[nt])
+        
+        comm = self.comm
+        
+        t0 = self.timestep.t0
+        dt = self.timestep.dt
+        nt = self.timestep.nt
+
+        ny = self.bgc.ny
+        y0 = self.bgc.y0
+        yj = self.bgc.yj
+        qj = self.bgc.qj
+
+        nu = self.bgc.nu
+        u = self.bgc.u
+
+        bgc = self.bgc.bgc
+
+        nb = self.bgc.nb
+        nbi = self.bgc.nbi
+        b = self.bgc.b
+        bj = self.bgc.bj
+
+        if hasattr(self.bgc, "nd"):
+            nd = self.bgc.nd
+            ndi = self.bgc.ndi
+            d = self.bgc.d
+            dj = self.bgc.dj
+        else:
+            nd = 0
+            ndi = []
+            d = []
+            dj = []
+
+        nl = self.solver.nl
+        yl = self.solver.yl
+
+        nexp = self.tmm.nexp
+        nimp = self.tmm.nimp
+#        Aexp, Aimp
+
+        # init
+        for i in range(ny):
+            yj[i] = y0[i]
+        
+        # spin up
+        for l in range(nl):
+            
+            # store
+            for i in range(ny):
+                yl[i] = y0[i]
+            
+            # time step
+            for j in range(nt):
+                tj = t0 + j*dt
+                _print_message(comm, "Time step: {}/{} {}".format(j, nt, tj))
+
+                # interpolate
+                for ib in range(nb):
+                    alpha, ialpha, beta, ibeta = _interpolate(nbi[ib], tj)
+                    bj[ib] = alpha * b[ib][ialpha] + beta * b[ib][ibeta]
+
+                for id in range(nd):
+                    alpha, ialpha, beta, ibeta = _interpolate(ndi[id], tj)
+                    dj[id] = alpha * d[id][ialpha] + beta * d[id][ibeta]
+
+                alpha, ialpha, beta, ibeta = _interpolate(nexp, tj)
+                Aexpj = alpha * Aexp[ialpha] + beta * Aexp[ibeta]
+
+                alpha, ialpha, beta, ibeta = _interpolate(nimp, tj)
+                Aimpj = alpha * Aimpj[ialpha] + beta * Aimpj[ibeta]
+
+                # bgc
+                bgc(ny, nu, nb, nd, dt, qj, tj, yj, u, bj, dj)
+                
+                # tmm
+                for i in range(ny):
+                    yjexp = Aexpj * yj[i] + qj[i]
+                    yj[i] = Aimpj * yjexp[i]
+
+                # error
+#                norm2 = norm2(yl, yj)
 
 
 

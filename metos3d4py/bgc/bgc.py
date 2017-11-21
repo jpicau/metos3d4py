@@ -17,7 +17,8 @@
 #
 
 import numpy
-from metos3d4py.util.util import _print_message, _load_from_nc_file
+from metos3d4py.util.util import _print_message, _print_message_synch, _set_from_nc_file
+#from metos3d4py.util.util import *
 from petsc4py import PETSc
 
 class BGC:
@@ -64,22 +65,20 @@ class BGC:
         yj = []
         qj = []
         for i in range(ny):
-            
             yw = PETSc.Vec()
             yw.create()
             yw.setType(PETSc.Vec.Type.STANDARD)
             yw.setSizes((nvloc, nv))
             if input is not None:
                 # read in
-                _load_from_nc_file(comm, grid, yw, input, tracer[i][0])  # tracer name
+                _set_from_nc_file(comm, grid, yw, input, tracer[i][0], None)  # tracer name
             else:
                 # set to tracer value
                 yw.set(tracer[i][1])
-
+            yw.assemble()
             y.append(yw)
             yj.append(yw.duplicate())
             qj.append(yw.duplicate())
-
         w = y[0].duplicate()
         
         self.name = name
@@ -112,7 +111,7 @@ class BGC:
 
 # ----------------------------------------------------------------------------------------
 
-    def _init_boundary_data(self, conf, grid, load):
+    def _init_boundary_data(self, comm, conf, grid, load):
         
         # list of boundary data
         boundary_list = conf.dict["BGC"]["Boundary data"]["Name, Count, Description, Unit, File"]
@@ -127,15 +126,22 @@ class BGC:
         nbi = []
         for i in range(nb):
             b.append([])
-            nbi.append(boundary_list[i][1])     # count
+            nbi.append(boundary_list[i][1])                                             # count
+
+            filepath = boundary_path + boundary_list[i][4]                              # file
+            _print_message(comm, "BGC init boundary: Using input file: {}".format(filepath))
+
             for j in range(nbi[i]):
                 bw = PETSc.Vec()
                 bw.create()
                 bw.setType(PETSc.Vec.Type.STANDARD)
                 bw.setSizes((nploc, np))
                 # !!! read in !!!
+                _set_from_nc_file(comm, grid, bw, filepath, boundary_list[i][0], j)     # boundary data name
                 # !!! read in !!!
+                bw.assemble()
                 b[i].append(bw)
+            # vector for interpolation
             bj.append(b[i][0].duplicate())
 
         self.boundary_list = boundary_list
@@ -147,12 +153,14 @@ class BGC:
         self.bj = bj
             
 # ----------------------------------------------------------------------------------------
-    def _init_domain_data(self, conf, grid, load):
+    def _init_domain_data(self, comm, conf, grid, load):
         
         # list of domain data
-        domain_list = conf.dict["BGC"]["Domain data"]["Name, Count, Description, Unit, File"]
-        domain_path = conf.dict["BGC"]["Domain data"]["Path"]
-        
+#        domain_list = conf.dict["BGC"]["Domain data"]["Name, Count, Description, Unit, File"]
+#        domain_path = conf.dict["BGC"]["Domain data"]["Path"]
+        domain_list = conf["Name, Count, Description, Unit, File"]
+        domain_path = conf["Path"]
+
         nv = grid.nv
         nvloc = load.nvloc
         
@@ -163,15 +171,20 @@ class BGC:
         
         for i in range(nd):
             d.append([])
-            ndi.append(domain_list[i][1])       # count
+            ndi.append(domain_list[i][1])                                               # count
+            
+            filepath = domain_path + domain_list[i][4]                                  # file
+            _print_message(comm, "BGC init domain: Using input file: {}".format(filepath))
+
             for j in range(ndi[i]):
                 dw = PETSc.Vec()
                 dw.create()
                 dw.setType(PETSc.Vec.Type.STANDARD)
                 dw.setSizes((nvloc, nv))
+                # !!! read in !!!
+                _set_from_nc_file(comm, grid, dw, filepath, domain_list[i][0], j)       # domain data name
+                # !!! read in !!!
                 dw.assemble()
-                # !!! read in !!!
-                # !!! read in !!!
                 d[i].append(dw)
             dj.append(d[i][0].duplicate())
 
@@ -184,13 +197,31 @@ class BGC:
         self.dj = dj
 
 # ----------------------------------------------------------------------------------------
+    def bgc(self, ny, nu, nb, nd, dt, qj, tj, yj, u, bj, dj):
+        comm = self.comm
+        name = self.conf.dict["BGC"]["Name"]
+        _print_message(comm, "BGC model: {}".format(name))
+#        _print_message_synch(comm, "  ny, nu, nb, nd, dt, qj, tj, yj, u, bj, dj: {}".format([ny, nu, nb, nd, dt, qj, tj, yj, u, bj, dj]))
+
+        
+
+
+
+    
+# ----------------------------------------------------------------------------------------
 
     def init(self, comm, conf, grid, load):
         
+        self.comm = comm
+        self.conf = conf
+        
         self._init_tracer(comm, conf, grid, load)
         self._init_parameter(conf)
-        self._init_boundary_data(conf, grid, load)
-        self._init_domain_data(conf, grid, load)
+        self._init_boundary_data(comm, conf, grid, load)
+        
+        conf_domain = conf.dict["BGC"].get("Domain data")
+        if conf_domain is not None:
+            self._init_domain_data(comm, conf_domain, grid, load)
 
 # ----------------------------------------------------------------------------------------
 
