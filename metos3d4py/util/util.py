@@ -16,6 +16,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import sys
+import h5py
 from petsc4py import PETSc
 
 # ----------------------------------------------------------------------------------------
@@ -54,6 +56,26 @@ def _print_message_synch(comm, msg):
             req.wait()
     else:
         _print_message(comm, msg)
+
+# ----------------------------------------------------------------------------------------
+def _load_from_nc_file(comm, grid, yw, varfile, varname):
+    
+    try:
+        file = h5py.File(varfile, "r")
+    except Exception as e:
+        _print_error(comm, "Cannot open file: {}".format(varfile))
+        _print_message(comm, e)
+        sys.exit(1)
+
+    try:
+        var = file[varname]
+    except Exception as e:
+        _print_error(comm, "Cannot retrieve variable: {} from file: {}".format(varname, varfile))
+        _print_message(comm, e)
+        sys.exit(1)
+
+    start, end = yw.getOwnershipRange()
+    yw[start:end] = var[0,...][grid.mask3d][grid.nc2tmm][start:end]
 
 # ----------------------------------------------------------------------------------------
 def _interpolate(n, t):

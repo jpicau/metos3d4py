@@ -38,10 +38,29 @@ class Grid:
         
         mask3d = (grid[...] != grid.fillvalue)
         mask2d = mask3d[0,...]
-
+        
         nv = mask3d.sum()                           # vector length
         np = mask2d.sum()                           # profile count
         npi = mask3d.sum(axis=0)[mask2d]            # each profile length
+        
+        # compute index permutation from nc/3d to tmm/1d
+        nc3d = mask3d[...].astype(">i4")
+        (nz, ny, nx) = nc3d.shape
+        nc3d[mask3d] = range(nv)
+        nc3d[mask3d] = nc3d[mask3d] + 1
+        nc1d = nc3d.reshape(nz, ny*nx).T.flat
+        self.nc2tmm = nc1d[nc1d != 0] - 1
+        
+        # test
+        test3d = mask3d[...].astype(">f8")
+        test3d[...] = 0.0
+        for iy in range(ny):
+            for ix in range(nx):
+                test3d[0, iy, ix] = float(iy) + float(ix)/1000.0
+        self.test3d = test3d
+        
+        
+        
 
         self.mask3d = mask3d
         self.mask2d = mask2d

@@ -17,6 +17,7 @@
 #
 
 import numpy
+from metos3d4py.util.util import _print_message, _load_from_nc_file
 from petsc4py import PETSc
 
 class BGC:
@@ -42,13 +43,19 @@ class BGC:
 
 # ----------------------------------------------------------------------------------------
 
-    def _init_tracer(self, conf, grid, load):
+    def _init_tracer(self, comm, conf, grid, load):
         
         name = conf.dict["BGC"]["Name"]
         tracer = conf.dict["BGC"]["Tracer"]["Name, Value, Unit, Description"]
-        input = conf.dict["BGC"]["Tracer"]["Input"]
         output = conf.dict["BGC"]["Tracer"]["Output"]
-        
+
+        input = conf.dict["BGC"]["Tracer"].get("Input")
+        if input is not None:
+            _print_message(comm, "BGC init tracer: Using input file: {}".format(input))
+        else:
+            values = [t[1] for t in tracer]
+            _print_message(comm, "BGC init tracer: Using init values: {}".format(values))
+                
         nv = grid.nv
         nvloc = load.nvloc
         
@@ -57,16 +64,22 @@ class BGC:
         yj = []
         qj = []
         for i in range(ny):
+            
             yw = PETSc.Vec()
             yw.create()
             yw.setType(PETSc.Vec.Type.STANDARD)
             yw.setSizes((nvloc, nv))
-            yw.assemble()
-            # !!! read in !!!
-            # !!! read in !!!
+            if input is not None:
+                # read in
+                _load_from_nc_file(comm, grid, yw, input, tracer[i][0])  # tracer name
+            else:
+                # set to tracer value
+                yw.set(tracer[i][1])
+
             y.append(yw)
             yj.append(yw.duplicate())
             qj.append(yw.duplicate())
+
         w = y[0].duplicate()
         
         self.name = name
@@ -120,7 +133,6 @@ class BGC:
                 bw.create()
                 bw.setType(PETSc.Vec.Type.STANDARD)
                 bw.setSizes((nploc, np))
-                bw.assemble()
                 # !!! read in !!!
                 # !!! read in !!!
                 b[i].append(bw)
@@ -175,7 +187,7 @@ class BGC:
 
     def init(self, comm, conf, grid, load):
         
-        self._init_tracer(conf, grid, load)
+        self._init_tracer(comm, conf, grid, load)
         self._init_parameter(conf)
         self._init_boundary_data(conf, grid, load)
         self._init_domain_data(conf, grid, load)

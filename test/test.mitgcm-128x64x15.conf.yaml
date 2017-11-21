@@ -36,8 +36,11 @@ BGC:
 
     Tracer:
         Name, Value, Unit, Description:
-            - [N,   2.14,   mmol P m-3, phosphate]
-        Input:  test/N.nc
+#            - [N,   2.14,   mmol P m-3, phosphate]
+#            - [DOP,   1.e-4,   mmol P m-3, phosphate]
+#        Input:  test/N.nc
+            - [salt,   0.0,   psu, just a test]
+        Input:  mitgcm-128x64x15/salt.nc
         Output: test/N.nc
       
     Parameter:
