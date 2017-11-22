@@ -35,10 +35,11 @@ from metos3d4py.version     import VERSION
 from metos3d4py.util        import util
 from metos3d4py.grid        import Grid
 from metos3d4py.load        import Load
+from metos3d4py.tracer      import Tracer
 from metos3d4py.bgc         import BGC
 from metos3d4py.tmm         import TMM
 from metos3d4py.time        import Time
-from metos3d4py.solve       import Solve
+from metos3d4py.solver      import Solver
 
 class Metos3D:
     """
@@ -50,6 +51,7 @@ class Metos3D:
         Main attributes:
             grid:
             load:
+            tracer:
             bgc:
             tmm:
             time:
@@ -61,16 +63,6 @@ class Metos3D:
             final():    finalize the context
     
     """
-
-# ----------------------------------------------------------------------------------------
-
-    def final(self):
-        """
-            final()
-            
-            finalize metos3d context,
-            """
-        pass
 
 # ----------------------------------------------------------------------------------------
 
@@ -88,12 +80,12 @@ class Metos3D:
                 
             """
         
-        # general environment
         self.version    = version   = VERSION
         self.comm       = comm      = PETSc.COMM_WORLD
         self.size       = size      = comm.size
         self.rank       = rank      = comm.rank
         
+        # debug
         util._print(comm, "metos3d version {} ".format(version))
         if size > 1:
             util._print(comm, "parallel run, {} processes".format(size))
@@ -104,15 +96,17 @@ class Metos3D:
         util.read_conf_from_yaml_file(self, argv)
 
         # create
-        grid, load, bgc, tmm, time, solve = Grid(), Load(), BGC(), TMM(), Time(), Solve()
+        grid, load, tracer, bgc, tmm, time, solver =
+            Grid(), Load(), Tracer(), BGC(), TMM(), Time(), Solver()
 
         # init
         grid.init(self)
         load.init(self)
+        tracer.init(self)
         bgc.init(self)
         tmm.init(self)
         time.init(self)
-        solve.init(self)
+        solver.init(self)
 
         # debug
         util._print(comm, self)
@@ -139,91 +133,96 @@ class Metos3D:
             yjp1 = [yjp11, ..., yjp1ny]
             
         """
-        
-        comm = self.comm
-        
-        t0, dt, nt = self.time.get_attr()
-#        t0 = self.timestep.t0
-#        dt = self.timestep.dt
-#        nt = self.timestep.nt
+        # compute solution
+        self.solver.solve(self)
+    
+#        comm = self.comm
+#        t0, dt, nt = self.time.get()
+#        ny, y0, yj, yexpj, qj = self.bgc.tracer.get()
+##        ny = self.bgc.ny
+##        y0 = self.bgc.y0
+##        yj = self.bgc.yj
+##        yexpj = self.bgc.yexpj
+##        qj = self.bgc.qj
+#
+#        nu = self.bgc.nu
+#        u = self.bgc.u
+#
+#        bgc = self.bgc.bgc
+#
+#        nb = self.bgc.nb
+#        nbi = self.bgc.nbi
+#        b = self.bgc.b
+#        bj = self.bgc.bj
+#
+#        if hasattr(self.bgc, "nd"):
+#            nd = self.bgc.nd
+#            ndi = self.bgc.ndi
+#            d = self.bgc.d
+#            dj = self.bgc.dj
+#        else:
+#            nd = 0
+#            ndi = []
+#            d = []
+#            dj = []
 
-        ny = self.bgc.ny
-        y0 = self.bgc.y0
-        yjexp = self.bgc.yjexp
-        yj = self.bgc.yj
-        qj = self.bgc.qj
+#        nl = self.solver.nl
+#        yl = self.solver.yl
+#
+#        nexp = self.tmm.nexp
+#        nimp = self.tmm.nimp
+##        Aexp, Aimp
+#
+#        # init
+#        for i in range(ny):
+#            yj[i] = y0[i]
+#
+#        # spin up
+#        for l in range(nl):
+#
+#            # store state at begin of model year
+#            for i in range(ny):
+#                yl[i] = y0[i]
+#
+#            # time step
+#            for j in range(nt):
+#                tj = t0 + j*dt
+#                util._print(comm, "Time step: {}/{} {}".format(j, nt, tj))
+#
+#                # interpolate
+#                for ib in range(nb):
+#                    alpha, ialpha, beta, ibeta = _interpolate(nbi[ib], tj)
+#                    bj[ib] = alpha * b[ib][ialpha] + beta * b[ib][ibeta]
+#
+#                for id in range(nd):
+#                    alpha, ialpha, beta, ibeta = _interpolate(ndi[id], tj)
+#                    dj[id] = alpha * d[id][ialpha] + beta * d[id][ibeta]
+#
+#                alpha, ialpha, beta, ibeta = _interpolate(nexp, tj)
+#                Aexpj = alpha * Aexp[ialpha] + beta * Aexp[ibeta]
+#
+#                alpha, ialpha, beta, ibeta = _interpolate(nimp, tj)
+#                Aimpj = alpha * Aimpj[ialpha] + beta * Aimpj[ibeta]
+#
+#                # bgc
+#                bgc(self, dt, qj, tj, yj, u, bj, dj)
+#
+#                # tmm
+#                for i in range(ny):
+#                    yexpj[i] = Aexpj * yj[i] + qj[i]
+#                    yj[i]    = Aimpj * yexpj[i]
+#
+#                # error
+##                norm2 = norm2(yl, yj)
 
-        nu = self.bgc.nu
-        u = self.bgc.u
+# ----------------------------------------------------------------------------------------
+    def final(self):
+        """
+            final()
 
-        bgc = self.bgc.bgc
-
-        nb = self.bgc.nb
-        nbi = self.bgc.nbi
-        b = self.bgc.b
-        bj = self.bgc.bj
-
-        if hasattr(self.bgc, "nd"):
-            nd = self.bgc.nd
-            ndi = self.bgc.ndi
-            d = self.bgc.d
-            dj = self.bgc.dj
-        else:
-            nd = 0
-            ndi = []
-            d = []
-            dj = []
-
-        nl = self.solver.nl
-        yl = self.solver.yl
-
-        nexp = self.tmm.nexp
-        nimp = self.tmm.nimp
-#        Aexp, Aimp
-
-        # init
-        for i in range(ny):
-            yj[i] = y0[i]
-        
-        # spin up
-        for l in range(nl):
-            
-            # store
-            for i in range(ny):
-                yl[i] = y0[i]
-            
-            # time step
-            for j in range(nt):
-                tj = t0 + j*dt
-                _print_message(comm, "Time step: {}/{} {}".format(j, nt, tj))
-
-                # interpolate
-                for ib in range(nb):
-                    alpha, ialpha, beta, ibeta = _interpolate(nbi[ib], tj)
-                    bj[ib] = alpha * b[ib][ialpha] + beta * b[ib][ibeta]
-
-                for id in range(nd):
-                    alpha, ialpha, beta, ibeta = _interpolate(ndi[id], tj)
-                    dj[id] = alpha * d[id][ialpha] + beta * d[id][ibeta]
-
-                alpha, ialpha, beta, ibeta = _interpolate(nexp, tj)
-                Aexpj = alpha * Aexp[ialpha] + beta * Aexp[ibeta]
-
-                alpha, ialpha, beta, ibeta = _interpolate(nimp, tj)
-                Aimpj = alpha * Aimpj[ialpha] + beta * Aimpj[ibeta]
-
-                # bgc
-                bgc(dt, qj, tj, yj, u, bj, dj)
-                
-                # tmm
-                for i in range(ny):
-                    yjexp[i] = Aexpj * yj[i] + qj[i]
-                    yj[i]    = Aimpj * yjexp[i]
-
-                # error
-#                norm2 = norm2(yl, yj)
-
-
+            finalize metos3d context,
+            """
+        pass
 
 
 

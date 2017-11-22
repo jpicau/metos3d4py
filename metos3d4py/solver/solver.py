@@ -16,36 +16,43 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-class Time:
+from metos3d4py.util import util
+
+class Solver:
     """
-        Time step context
+        Solver class
+        
+        Solver context
         
         Attributes:
-            t0          start
-            nt          count
-            dt          step
+            nl          model years
+            yl          ...
 
         """
 
 # ----------------------------------------------------------------------------------------
-    def __str__(self):
-        return "TimeStep:\n  t0: {}\n  nt: {}\n  dt: {}".format(self.t0, self.nt, self.dt)
+    def solve(self, m3d):
+        comm = m3d.comm
+        time = m3d.time
+        util._print(comm, "Solver: Solve ...")
+    
+        nl = self.nl
+        yl = self.yl
 
-## ----------------------------------------------------------------------------------------
-#    def get(self):
-#        return self.t0, self.nt, self.dt
+# ----------------------------------------------------------------------------------------
+    def __str__(self):
+        return "Solver:\n  nl: {}".format(self.nl)
 
 # ----------------------------------------------------------------------------------------
     def init(self, m3d):
         
         comm = m3d.comm
-        conf = m3d.conf["Time step"]
+        conf = m3d.conf["Solver"]
+        
+        self.nl = conf["Count"]
+        self.yl = []
 
-        self.t0 = conf["Start"]
-        self.nt = conf["Count"]
-        self.dt = conf["Step"]
-
-        m3d.time = self
+        m3d.solver = self
 
 
 

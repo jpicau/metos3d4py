@@ -46,60 +46,60 @@ class BGC:
     def __str__(self):
         return "BGC:\n  Model name:   {}\n  Tracer count: {}".format(self.name, self.ny)
 
-# ----------------------------------------------------------------------------------------
-    def init_tracer(self, m3d):
-        
-        comm = m3d.comm
-        grid = m3d.grid
-        load = m3d.load
-        conf_bgc = m3d.conf["BGC"]
-        
-        name = conf_bgc["Name"]
-        tracer = conf_bgc["Tracer"]["Name, Value, Unit, Description"]
-        output = conf_bgc["Tracer"]["Output"]
-
-        input = conf_bgc["Tracer"].get("Input")
-        if input is not None:
-            util._print(comm, "BGC init tracer: Using input file: {}".format(input))
-        else:
-            values = [t[1] for t in tracer]
-            util._print(comm, "BGC init tracer: Using init values: {}".format(values))
-                
-        nv = grid.nv
-        nvloc = load.nvloc
-        
-        ny = len(tracer)
-        y = []
-        yj = []
-        qj = []
-        for i in range(ny):
-            yw = PETSc.Vec()
-            yw.create()
-            yw.setType(PETSc.Vec.Type.STANDARD)
-            yw.setSizes((nvloc, nv))
-            if input is not None:
-                # read in
-                util.set_from_nc_file(comm, grid, yw, input, tracer[i][0], None)  # tracer name
-            else:
-                # set to tracer value
-                yw.set(tracer[i][1])
-            yw.assemble()
-            y.append(yw)
-            yj.append(yw.duplicate())
-            qj.append(yw.duplicate())
-        w = y[0].duplicate()
-        
-        self.name = name
-        self.tracer = tracer
-        self.input = input
-        self.output = output
-        
-        self.ny = ny
-        self.y = y
-        self.yj = yj
-        self.qj = qj
-        self.w = w
-    
+## ----------------------------------------------------------------------------------------
+#    def init_tracer(self, m3d):
+#
+#        comm = m3d.comm
+#        grid = m3d.grid
+#        load = m3d.load
+#        conf_bgc = m3d.conf["BGC"]
+#
+#        name = conf_bgc["Name"]
+#        tracer = conf_bgc["Tracer"]["Name, Value, Unit, Description"]
+#        output = conf_bgc["Tracer"]["Output"]
+#
+#        input = conf_bgc["Tracer"].get("Input")
+#        if input is not None:
+#            util._print(comm, "BGC init tracer: Using input file: {}".format(input))
+#        else:
+#            values = [t[1] for t in tracer]
+#            util._print(comm, "BGC init tracer: Using init values: {}".format(values))
+#
+#        nv = grid.nv
+#        nvloc = load.nvloc
+#
+#        ny = len(tracer)
+#        y = []
+#        yj = []
+#        qj = []
+#        for i in range(ny):
+#            yw = PETSc.Vec()
+#            yw.create()
+#            yw.setType(PETSc.Vec.Type.STANDARD)
+#            yw.setSizes((nvloc, nv))
+#            if input is not None:
+#                # read in
+#                util.set_from_nc_file(comm, grid, yw, input, tracer[i][0], None)  # tracer name
+#            else:
+#                # set to tracer value
+#                yw.set(tracer[i][1])
+#            yw.assemble()
+#            y.append(yw)
+#            yj.append(yw.duplicate())
+#            qj.append(yw.duplicate())
+#        w = y[0].duplicate()
+#
+#        self.name = name
+#        self.tracer = tracer
+#        self.input = input
+#        self.output = output
+#
+#        self.ny = ny
+#        self.y = y
+#        self.yj = yj
+#        self.qj = qj
+#        self.w = w
+ 
 # ----------------------------------------------------------------------------------------
     def init_parameter(self, m3d):
         
@@ -243,10 +243,11 @@ class BGC:
     
 # ----------------------------------------------------------------------------------------
     def init(self, m3d):
-        self.init_tracer(m3d)
+#        self.init_tracer(m3d)
         self.init_parameter(m3d)
         self.init_boundary_data(m3d)
         self.init_domain_data(m3d)
+        m3d.bgc = self
 
 
 

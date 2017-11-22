@@ -16,31 +16,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-class Solve:
+"""
+    Solver submodule
+    ===============
+        
     """
-        Solver class
-        
-        Solver context
-        
-        Attributes:
-            nl          model years
-            yl          ...
 
-        """
+from metos3d4py.solver.solver import Solver
 
-# ----------------------------------------------------------------------------------------
-    def __str__(self):
-        return "Solver:\n  nl: {}".format(self.nl)
-
-# ----------------------------------------------------------------------------------------
-    def init(self, m3d):
-        
-        comm = m3d.comm
-        conf_solve = m3d.conf["Solver"]
-        
-        self.nl = conf_solve["Count"]
-        self.yl = []
-
-
+__all__ = ["Solver"]
 
 

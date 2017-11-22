@@ -16,34 +16,41 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-Debug level:    3
+#
+#   Configuration file for a test run,
+#   mitgcm-128x64x15,
+#   monthly means, 12, explicit, implicit,
+#   spin up, 1 model year,
+#   time steps, 1,
+#   bgc, N model, 1 tracer,
+#   5 parameters
+#   ice fraction, wind, boundary data
+#
 
-Grid file:      mitgcm-128x64x15/grid.nc
-
-Time step:
-    Start:      0.0
-#    Count:      2880
-    Count:      1
-    Step:       0.0003472222222222
+Grid:           mitgcm-128x64x15/grid.nc
 
 Solver:
     Type:       Spinup
     Count:      1 # 3000
     Monitor:    on
 
+Time:
+    Start:      0.0
+    Count:      1 # 2880
+    Step:       0.0003472222222222
+
+Tracer:
+    Name, Value, Unit, Description:
+        - [N,   2.14,   mmol P m-3, phosphate]
+#        - [DOP, 1.e-4,  mmol P m-3, dissolved organic phosphorous]
+#        - [y, 1.0,  1, dummy]
+#        - [y1, 0.0,  1, first bgc variable]
+#        - [y2, 0.0,  1, second bcg variable]
+    Input:      test/N.nc
+    Output:     test/N.nc
+
 BGC:
-
     Name:       N
-
-    Tracer:
-        Name, Value, Unit, Description:
-            - [N,   2.14,   mmol P m-3, phosphate]
-            - [DOP,   1.e-4,   mmol P m-3, phosphate]
-#        Input:  test/N.nc
-#            - [salt,   0.0,   psu, just a test]
-#        Input:  mitgcm-128x64x15/salt.nc
-        Output: test/N.nc
-      
     Parameter:
         Name, Value, Unit, Description:
             - [kw,  0.02,   m-1,        attenuation by water]
@@ -51,14 +58,12 @@ BGC:
             - [KN,  0.5,    mmol P m-3, half saturation phosphate]
             - [KI,  30.0,   W m-2,      half saturation light]
             - [b,   0.858,  1,          martin exponent]
-
     Boundary data:
         Path:   mitgcm-128x64x15/
         Name, Count, Description, Unit, File:
             - [fice, 12, ice cover fraction, 1,      fice.nc]
 #            - [wind, 12, wind speed at 10m,  m s-1,  wind.nc]
 #            - [dust, 12, dust deposition,    kg m-2, dust.nc]
-
     Domain data:
         Path:   mitgcm-128x64x15/
         Name, Count, Description, Unit, File:
@@ -70,6 +75,7 @@ TMM:
     # Name, Count, File
     Explicit:   [Aexp, 12, Aexp.nc]
     Implicit:   [Aimp, 12, Aimp.nc]
+
 
 
 
