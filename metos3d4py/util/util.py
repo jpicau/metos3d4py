@@ -16,10 +16,22 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import yaml
 import math
 import sys
 import h5py
 from petsc4py import PETSc
+
+"""
+    read_conf_from_yaml_file
+    
+    """
+
+# ----------------------------------------------------------------------------------------
+def _print(comm, msg):
+    if comm.rank == 0:
+        print(msg)
+        sys.stdout.flush()
 
 # ----------------------------------------------------------------------------------------
 def _print_usage(comm):
@@ -31,17 +43,18 @@ def _print_usage(comm):
 # ----------------------------------------------------------------------------------------
 def _print_error(comm, msg):
     if comm.rank == 0:
-        print("### ERROR ### {}".format(msg))
+        for msg_line in str(msg).split("\n"):
+            print("### ERROR ### {}".format(msg_line))
         sys.stdout.flush()
 
 # ----------------------------------------------------------------------------------------
-def _print_message(comm, msg):
-    if comm.rank == 0:
-        print(msg)
-        sys.stdout.flush()
-
-# ----------------------------------------------------------------------------------------
-def _print_message_synch(comm, msg):
+def _print_synch(comm, msg):
+    """
+        Print messages from each process in an ordered/synchronized manner.
+        Collect each message first. Use the internal mpi4py communicator therefore.
+        Rank 0 receives, all other process send.
+        
+        """
     
     comm_mpi = comm.tompi4py()
     size = comm.size
@@ -62,62 +75,52 @@ def _print_message_synch(comm, msg):
         _print_message(comm, msg)
 
 # ----------------------------------------------------------------------------------------
-def _set_from_nc_file(comm, grid, v, varfile, varname, index):
+def read_from_nc_file(m3d, v, file, varname, index):
     
-    try:
-        file = h5py.File(varfile, "r")
-    except Exception as e:
-        _print_error(comm, "Cannot open file: {}".format(varfile))
-        _print_message(comm, e)
-        sys.exit(1)
+    grid = m3d.grid
+    mask3d = grid.mask3d
+    mask2d = grid.mask2d
+    nc2tmm = grid.nc2tmm
 
     try:
         var = file[varname]
     except Exception as e:
-        _print_error(comm, "Cannot retrieve variable: {} from file: {}".format(varname, varfile))
-        _print_message(comm, e)
+        _print_error(comm, "Cannot retrieve variable: {}".format(varname))
+        _print_error(comm, e)
         sys.exit(1)
 
-#    _print_message(comm, "{} {} {}".format(varname, index, var.shape))
-
     start, end = v.getOwnershipRange()
-#    print("{} {}".format(start, end))
 
     if index is not None:
         # C order, slowest dim left
         if len(var.shape) == 3:
             # mask2d
-            v[start:end] = var[index,...][grid.mask2d][start:end]
+            v[start:end] = var[index,...][mask2d][start:end]
         elif len(var.shape) == 4:
             # mask3d
-            v[start:end] = var[index,...][grid.mask3d][grid.nc2tmm][start:end]
+            v[start:end] = var[index,...][mask3d][nc2tmm][start:end]
         else:
-            _print_error(comm, "Variable: {} required to be 2D or 3D. Shape is: {} With index: {}".format(varname, var.shape, index))
+            util._print_error(comm, "Variable: {} required to be 2D or 3D. Shape is: {} With index: {}".format(varname, var.shape, index))
     else:
         if len(var.shape) == 2:
-            v[start:end] = var[...][grid.mask2d][start:end]
+            v[start:end] = var[...][mask2d][start:end]
         elif len(var.shape) == 3:
-            v[start:end] = var[...][grid.mask3d][grid.nc2tmm][start:end]
+            v[start:end] = var[...][mask3d][nc2tmm][start:end]
         else:
-            _print_error(comm, "Variable: {} required to be 2D or 3D. Shape is: {} ".format(varname, var.shape))
-
-    file.close()
-
-#    _print_message_synch(comm, "{:3} {:7} {:7} {}".format(comm.rank, start, end, v[start:end][:4]))
-
+            util._print_error(comm, "Variable: {} required to be 2D or 3D. Shape is: {} ".format(varname, var.shape))
 
 # ----------------------------------------------------------------------------------------
-def _interpolate(n, t):
+def interp(n, t):
     '''
-        _interpolate
-        
+        compute the interpolation coefficients and indices on the fly
+
         n:  number of intervals [0,1] is devided into
         t:  point in time (in [0,1])
         
-        compute the interpolation coefficients and indices on the fly
+        alpha, ialpha, beta, ibeta
         
         '''
-    
+
     w = t * n + 0.5
     beta = math.fmod(w, 1.0)
     alpha = (1.0 - beta)
@@ -125,4 +128,45 @@ def _interpolate(n, t):
     ialpha = int(math.fmod(math.floor(w) + n - 1, n))
     
     return alpha, ialpha, beta, ibeta
+
+# ----------------------------------------------------------------------------------------
+def read_conf_from_yaml_file(m3d, argv):
+    """
+        argv    # command line arguments
+        conf    # dictionary where the parsed YAML contents is stored
+            
+        """
+    
+    comm = m3d.comm
+    
+    # the first command line argument is always the name of the current executable,
+    # expect the file path as second argument,
+    if len(argv) > 1:
+        
+        _print(comm, "parsing configuration file: {}".format(argv[1]))
+
+        try:
+            # open file
+            f = open(argv[1])
+        except Exception as e:
+            _print_error(comm, "Cannot open file: {}".format(argv[1]))
+            _print_error(comm, e)
+            _print_usage(comm)
+            sys.exit(1)
+
+        try:
+            # parse yaml content
+            m3d.conf = yaml.load(f)
+        except Exception as e:
+            _print_error(comm, "Cannot parse as YAML file: {}".format(argv[1]))
+            _print_error(comm, e)
+            _print_usage(comm)
+            sys.exit(1)
+
+        f.close()
+    
+    else:
+        _print_error(comm, "No configuration file given.")
+        _print_usage(comm)
+        sys.exit(0)
 

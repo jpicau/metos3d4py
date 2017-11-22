@@ -16,11 +16,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-class TimeStep:
+class Time:
     """
-        TimeStep class
-        
-        TimeStep context
+        Time step context
         
         Attributes:
             t0          start
@@ -30,17 +28,25 @@ class TimeStep:
         """
 
 # ----------------------------------------------------------------------------------------
-
-    def init(self, comm, conf):
-        
-        self.t0 = conf.dict["Time step"]["Start"]
-        self.nt = conf.dict["Time step"]["Count"]
-        self.dt = conf.dict["Time step"]["Step"]
-
-# ----------------------------------------------------------------------------------------
-
     def __str__(self):
         return "TimeStep:\n  t0: {}\n  nt: {}\n  dt: {}".format(self.t0, self.nt, self.dt)
+
+# ----------------------------------------------------------------------------------------
+    def get_attr(self):
+        return self.t0, self.nt, self.dt
+    
+# ----------------------------------------------------------------------------------------
+    def init(self, m3d):
         
+        comm = m3d.comm
+        conf_time = m3d.conf["Time step"]
+        
+        self.t0 = conf_time["Start"]
+        self.nt = conf_time["Count"]
+        self.dt = conf_time["Step"]
+
+        m3d.time = self
+
+
 
 

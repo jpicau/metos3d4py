@@ -37,13 +37,16 @@ class TMM:
 
 # ----------------------------------------------------------------------------------------
 
-    def init(self, comm, conf, grid, load):
+    def init(self, m3d):
+        
+        comm = m3d.comm
+        conf_tmm = m3d.conf["TMM"]
     
-        self.tmm_path = tmm_path = conf.dict["TMM"]["Path"]
+        self.path = path = conf_tmm["Path"]
         
         # Name, Count, File
-        self.exp_list = exp_list = conf.dict["TMM"]["Explicit"]
-        self.imp_list = imp_list = conf.dict["TMM"]["Implicit"]
+        self.exp_list = exp_list = conf_tmm["Explicit"]
+        self.imp_list = imp_list = conf_tmm["Implicit"]
     
         self.nexp = nexp = exp_list[1]
         self.Aexp = exp_list[2]
@@ -60,6 +63,8 @@ class TMM:
         for i in range(nimp):
             pass
         # Aimpj
+
+        m3d.tmm = self
 
 # ----------------------------------------------------------------------------------------
 

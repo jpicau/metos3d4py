@@ -22,8 +22,8 @@
         
     """
 
-from metos3d4py.timestep.timestep import TimeStep
+from metos3d4py.time.time import Time
 
-__all__ = ["TimeStep"]
+__all__ = ["Time"]
 
 

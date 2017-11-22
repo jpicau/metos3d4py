@@ -31,15 +31,14 @@
 
 from petsc4py import PETSc
 
-from metos3d4py             import VERSION
-from metos3d4py.conf        import Conf
+from metos3d4py.version     import VERSION
+from metos3d4py.util        import util
 from metos3d4py.grid        import Grid
 from metos3d4py.load        import Load
 from metos3d4py.bgc         import BGC
 from metos3d4py.tmm         import TMM
-from metos3d4py.timestep    import TimeStep
-from metos3d4py.solver      import Solver
-from metos3d4py.util.util   import _print_message, _print_message_synch, _interpolate
+from metos3d4py.time        import Time
+from metos3d4py.solve       import Solve
 
 class Metos3D:
     """
@@ -48,20 +47,13 @@ class Metos3D:
         serves as the Metos3D data type, i.e.
         stores the metos3d simulation context,
 
-        Attributes:
-            version
-            
-            comm
-            size
-            rank
-            
-            conf:
+        Main attributes:
             grid:
             load:
             bgc:
             tmm:
-            timestep:
-            solver:
+            time:
+            solve:
 
         Methods:
             init():     initialize metos3d context from a yaml configuration file
@@ -84,68 +76,55 @@ class Metos3D:
 
     def init(self, argv):
         """
-            init()
-            
-            Parameters:
-                argv:   list with command arguments
-            
+            check computation model ...
             print version,
             print number of processes,
-
+            attributes ...
+            creates instances ...
             initialize metos3d context,
-                conf,
-                grid,
-                load,
-                bgc,
-                tmm,
-                timestep,
-                solver,
+
+            Parameters:
+                argv:   list with command arguments, file path of yaml conf file
                 
             """
         
+        # general environment
         self.version    = version   = VERSION
         self.comm       = comm      = PETSc.COMM_WORLD
         self.size       = size      = comm.size
         self.rank       = rank      = comm.rank
         
-        _print_message(comm, "metos3d version {} ".format(version))
+        util._print(comm, "metos3d version {} ".format(version))
         if size > 1:
-            _print_message(comm, "parallel run, {} processes".format(size))
+            util._print(comm, "parallel run, {} processes".format(size))
         else:
-            _print_message(comm, "sequential run, {} process".format(size))
+            util._print(comm, "sequential run, {} process".format(size))
+
+        # configuration
+        util.read_conf_from_yaml_file(self, argv)
 
         # create
-        self.conf       = conf      = Conf()
-        self.grid       = grid      = Grid()
-        self.load       = load      = Load()
-        self.bgc        = bgc       = BGC()
-        self.tmm        = tmm       = TMM()
-        self.timestep   = timestep  = TimeStep()
-        self.solver     = solver    = Solver()
+        grid, load, bgc, tmm, time, solve = Grid(), Load(), BGC(), TMM(), Time(), Solve()
 
         # init
-        conf.init(comm, argv)
-        grid.init(comm, conf)
-        load.init(comm, grid)
-        bgc.init(comm, conf, grid, load)
-        tmm.init(comm, conf, grid, load)
-        timestep.init(comm, conf)
-        solver.init(comm, conf)
-        
+        grid.init(self)
+        load.init(self)
+        bgc.init(self)
+        tmm.init(self)
+        time.init(self)
+        solve.init(self)
+
         # debug
-        _print_message(comm, conf)
-        _print_message(comm, grid)
-        _print_message_synch(comm, load)
-        _print_message(comm, bgc)
-        _print_message(comm, tmm)
-        _print_message(comm, timestep)
-        _print_message(comm, solver)
+        util._print(comm, self)
 
     def run(self):
         """
-            run
-            
-            runs a simulation
+            runs a simulation,
+            loop over model years, spin up
+            perform time steps,
+            interpolate, boundary and domain data, matrices,
+            evaluate bgc model,
+            apply transport,
             
             u = [u1, ..., um]
             bj = [[]]
@@ -160,16 +139,17 @@ class Metos3D:
             yjp1 = [yjp11, ..., yjp1ny]
             
         """
-        pass
         
         comm = self.comm
         
-        t0 = self.timestep.t0
-        dt = self.timestep.dt
-        nt = self.timestep.nt
+        t0, dt, nt = self.time.get_attr()
+#        t0 = self.timestep.t0
+#        dt = self.timestep.dt
+#        nt = self.timestep.nt
 
         ny = self.bgc.ny
         y0 = self.bgc.y0
+        yjexp = self.bgc.yjexp
         yj = self.bgc.yj
         qj = self.bgc.qj
 
@@ -233,12 +213,12 @@ class Metos3D:
                 Aimpj = alpha * Aimpj[ialpha] + beta * Aimpj[ibeta]
 
                 # bgc
-                bgc(ny, nu, nb, nd, dt, qj, tj, yj, u, bj, dj)
+                bgc(dt, qj, tj, yj, u, bj, dj)
                 
                 # tmm
                 for i in range(ny):
-                    yjexp = Aexpj * yj[i] + qj[i]
-                    yj[i] = Aimpj * yjexp[i]
+                    yjexp[i] = Aexpj * yj[i] + qj[i]
+                    yj[i]    = Aimpj * yjexp[i]
 
                 # error
 #                norm2 = norm2(yl, yj)

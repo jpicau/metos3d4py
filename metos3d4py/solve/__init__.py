@@ -17,13 +17,13 @@
 #
 
 """
-    Conf submodule
-    ==============
+    Solver submodule
+    ===============
         
     """
 
-from metos3d4py.conf.conf import Conf
+from metos3d4py.solve.solve import Solve
 
-__all__ = ["Conf"]
+__all__ = ["Solve"]
 
 

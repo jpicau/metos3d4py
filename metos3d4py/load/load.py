@@ -30,9 +30,26 @@ import numpy
         
     """
 class Load:
-    def init(self, comm, grid):
-        self.size = size = comm.size
-        self.rank = rank = comm.rank
+    """
+        ...
+        """
+    
+    def __str__(self):
+        text = ""
+        if self.rank == 0:
+            text = text + "Load:\n"
+        text = text + "  rank: {:3d}   ".format(self.rank)
+        text = text + "  npprev, nploc: {:5d} {:5d}   ".format(self.npprev, self.nploc)
+        text = text + "  nvprev, nvloc: {:7d} {:7d}   ".format(self.nvprev, self.nvloc)
+        return text
+
+    def init(self, m3d):
+        
+        comm = m3d.comm
+        grid = m3d.grid
+        
+        size = comm.size
+        rank = comm.rank
         
         nv = grid.nv
         np = grid.np
@@ -52,18 +69,14 @@ class Load:
         nvloc = npi[npprev:npprev+nploc].sum()
         nvprev = npi[0:npprev].sum()
 
+        # store in self
         self.nploc = nploc
         self.npprev = npprev
         self.nvloc = nvloc
         self.nvprev = nvprev
+    
+        # store self in m3d
+        m3d.load = self
 
-    def __str__(self):
-        text = ""
-        if self.rank == 0:
-            text = text + "Load:\n"
-        text = text + "  rank: {:3d}   ".format(self.rank)
-        text = text + "  npprev, nploc: {:5d} {:5d}   ".format(self.npprev, self.nploc)
-        text = text + "  nvprev, nvloc: {:7d} {:7d}   ".format(self.nvprev, self.nvloc)
-        return text
 
 
