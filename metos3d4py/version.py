@@ -17,11 +17,8 @@
 #
 
 """
-    version.py
-    
     Hard-coded/constant version string in a variable that can be imported.
-
-"""
+    """
 
 VERSION = "0.0.0"
 

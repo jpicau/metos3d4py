@@ -19,22 +19,21 @@
 import numpy
 from metos3d4py.util import util
 
-"""
-    Load submodule
-    ==============
-    
-    Attributes:
+# ----------------------------------------------------------------------------------------
+class Load:
+    """
+        Load submodule
+        ==============
+        
+        Attributes:
         nploc
         npprev
         nvloc
         nvprev
         
     """
-class Load:
-    """
-        ...
-        """
-    
+
+# ----------------------------------------------------------------------------------------
     def __str__(self):
         size = self.size
         rank = self.rank
@@ -47,16 +46,18 @@ class Load:
         text = text + "  nvprev, nvloc: {:7d} {:7d}   ".format(self.nvprev, self.nvloc)
         return text
 
+# ----------------------------------------------------------------------------------------
     def init(self, m3d):
         
         comm = m3d.comm
         grid = m3d.grid
-        util._print(comm, "Load init: {}".format("..."))
+        util.debug(m3d, "Load init: {}".format("..."), level=1)
 
         # store own copy of rank and size for __str__
         self.size = size = comm.size
         self.rank = rank = comm.rank
         
+        # ...
         nv = grid.nv
         np = grid.np
         npi = grid.npi

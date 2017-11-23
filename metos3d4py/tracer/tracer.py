@@ -37,38 +37,25 @@ class Tracer:
 # ----------------------------------------------------------------------------------------
     def init(self, m3d):
         
-        comm = m3d.comm
-        grid = m3d.grid
-        load = m3d.load
-        
-        # check tracer key
-        try:
-            conf = m3d.conf["Tracer"]
-        except Exception as e:
-            util._print_error(comm, "Tracer: Cannot retrieve tracer key from configuration.")
-            sys.exit(1)
+        util.debug(m3d, "Tracer init: {}".format("..."), level=1)
 
-        tracer = conf["Name, Value, Unit, Description"]
-        output = conf["Output"]
+        config = util.get_key(m3d, "Tracer init", m3d.config, "Tracer", dict)
+        tracer = util.get_key(m3d, "Tracer init", config, "Name, Value, Unit, Description", list)
+        output = util.get_key(m3d, "Tracer init", config, "Output", str)
 
-        input = conf.get("Input")
+        input = config.get("Input")
         if input is not None:
-            util._print(comm, "Tracer init: Using input file: {}".format(input))
-        
-            try:
-                file = h5py.File(input, "r")
-            except Exception as e:
-                util._print_error(comm, "Cannot open file: {}".format(input))
-                util._print_error(comm, e)
-                sys.exit(1)
-
+            util.debug(m3d, "Tracer init: Using input file: {}".format(input), level=1)
+            tracerfile = util.get_hdf5_file(m3d, "Tracer init", input)
         else:
-            values = [t[1] for t in tracer]
-            util._print(comm, "Tracer init: Using init values: {}".format(values))
+            tracervalue = [t[1] for t in tracer]
+            util.debug(m3d, "Tracer init: Using init values: {}".format(tracervalue), level=1)
+
+        # global and local vector length
+        nv = m3d.grid.nv
+        nvloc = m3d.load.nvloc
                 
-        nv = grid.nv
-        nvloc = load.nvloc
-        
+        # create tracer vectors
         ny = len(tracer)
         y0 = []
         for i in range(ny):
@@ -77,29 +64,18 @@ class Tracer:
             y.setType(PETSc.Vec.Type.STANDARD)
             y.setSizes((nvloc, nv))
             if input is not None:
-                # read in
-                util.read_from_nc_file(m3d, y, file, tracer[i][0], None)  # tracer name
-#                util.set_from_nc_file(comm, grid, y, input, tracer[i][0], None)  # tracer name
+                tracername = tracer[i][0]
+                util.set_vector_from_hdf5_file(m3d, y, tracerfile, tracername, None)
             else:
-                # set to tracer value
-                y.set(tracer[i][1])
+                y.set(tracervalue[i])
             y.assemble()
             y0.append(y)
 
         self.ny = ny
         self.y0 = y0
         self.output = output
-        
-        m3d.tracer = self
 
-#        self.tracer = tracer
-#        self.input = input
-#        self.output = output
-#        self.ny = ny
-#        self.y = y
-#        self.yj = yj
-#        self.qj = qj
-#        self.w = w
+        m3d.tracer = self
 
 
 

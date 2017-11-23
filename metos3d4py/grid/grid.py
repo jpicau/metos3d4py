@@ -16,22 +16,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import sys
-import h5py
 from metos3d4py.util import util
 
-"""
-    Grid submodule
-    ==============
-    
-    Attributes:
-        mask3d
-        mask2d
-        nv
-        np
-        npi
-    
-    """
+# ----------------------------------------------------------------------------------------
 class Grid:
     """
         an intance of the grid class is used to store the grid context,
@@ -42,31 +29,19 @@ class Grid:
 
         """
 
+# ----------------------------------------------------------------------------------------
     def __str__(self):
         return "Grid:\n  Vector length:   {}\n  Profile count:   {}\n  Profile lengths: {}".format(self.nv, self.np, self.npi)
 
+# ----------------------------------------------------------------------------------------
     def init(self, m3d):
         
-        comm = m3d.comm
-        conf = m3d.conf
+        util.debug(m3d, "Grid init: {}".format("..."), level=1)
 
-        # check grid key
-        try:
-            file_path = conf["Grid"]
-            util._print(comm, "Grid init: Using input file: {}".format(file_path))
-        except Exception as e:
-            util._print_error(comm, "Grid init: Cannot retrieve grid key from configuration.")
-            sys.exit(1)
-        
-        # grid file
-        try:
-            grid_file = h5py.File(file_path, "r")
-        except Exception as e:
-            util._print_error(comm, "Grid init: Cannot open file.")
-            util._print_error(comm, e)
-            sys.exit(1)
-        
-        grid = grid_file["grid_mask"]
+        # get grid_mask variable from file
+        filepath = util.get_key(m3d, "Grid init", m3d.config, "Grid", str)
+        gridfile = util.get_hdf5_file(m3d, "Grid init", filepath)
+        grid = gridfile["grid_mask"]
         
         # masks
         mask3d = (grid[...] != grid.fillvalue)
@@ -95,6 +70,9 @@ class Grid:
     
         # store self in m3d
         m3d.grid = self
+
+        gridfile.close()
+
 
 
 

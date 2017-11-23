@@ -27,6 +27,8 @@
 #   ice fraction, wind, boundary data
 #
 
+Debug:          3
+
 Grid:           mitgcm-128x64x15/grid.nc
 
 Solver:

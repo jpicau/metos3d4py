@@ -41,6 +41,7 @@ from metos3d4py.tmm         import TMM
 from metos3d4py.time        import Time
 from metos3d4py.solver      import Solver
 
+# ----------------------------------------------------------------------------------------
 class Metos3D:
     """
         Metos3D class
@@ -82,23 +83,27 @@ class Metos3D:
                 
             """
         
+        # version and runtime context
         self.version    = version   = VERSION
         self.comm       = comm      = PETSc.COMM_WORLD
         self.size       = size      = comm.size
         self.rank       = rank      = comm.rank
         
-        # debug
-        util._print(comm, "metos3d version {} ".format(version))
-        if size > 1:
-            util._print(comm, "parallel run, {} processes".format(size))
-        else:
-            util._print(comm, "sequential run, {} process".format(size))
+        # config
+        self.config = util.get_config_from_yaml_file(self, argv)
 
-        # configuration
-        util.read_conf_from_yaml_file(self, argv)
+        # debug
+        self.debug = util.get_key(self, "Metos3D init", self.config, "Debug", int)
+        util.debug(self, "metos3d version {} ".format(version), level=1)
+        if size > 1:
+            util.debug(self, "parallel run, {} processes".format(size), level=1)
+        else:
+            util.debug(self, "sequential run, {} process".format(size), level=1)
+        util.debug(self, "config file: {}".format(argv[1]), level=1)
 
         # create
-        grid, load, tracer, bgc, tmm, time, solver = Grid(), Load(), Tracer(), BGC(), TMM(), Time(), Solver()
+        grid, load, tracer, bgc, tmm, time, solver = \
+            Grid(), Load(), Tracer(), BGC(), TMM(), Time(), Solver()
 
         # init
         grid.init(self)
@@ -110,8 +115,9 @@ class Metos3D:
         solver.init(self)
 
         # debug
-        util._print(comm, self)
+        util.debug(self, self, level=1)
 
+# ----------------------------------------------------------------------------------------
     def run(self):
         """
             runs a simulation,
@@ -134,11 +140,12 @@ class Metos3D:
             yjp1 = [yjp11, ..., yjp1ny]
             
         """
+        
         # compute solution
         self.solver.solve(self)
-        # store to disk
-#        self.tracer.
-#        util.write_to_nc
+        
+        # store as hdf5 file
+        self.tracer.write(self)
     
 #        comm = self.comm
 #        t0, dt, nt = self.time.get()

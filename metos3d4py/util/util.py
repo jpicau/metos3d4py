@@ -22,60 +22,90 @@ import sys
 import h5py
 from petsc4py import PETSc
 
-"""
-    read_conf_from_yaml_file
-    
-    """
-
 # ----------------------------------------------------------------------------------------
-def _print(comm, msg):
-    if comm.rank == 0:
-        print(msg)
-        sys.stdout.flush()
-
-# ----------------------------------------------------------------------------------------
-def _print_usage(comm):
-    if comm.rank == 0:
+def usage(m3d):
+    if m3d.rank == 0:
         print("usage:\n  python metos3d.py [conf-yaml-file]")
         print("example:\n  python metos3d.py test/test.mitgcm-128x64x15.conf.yaml")
         sys.stdout.flush()
 
 # ----------------------------------------------------------------------------------------
-def _print_error(comm, msg):
-    if comm.rank == 0:
+def error(m3d, msg):
+    if m3d.rank == 0:
         for msg_line in str(msg).split("\n"):
             print("### ERROR ### {}".format(msg_line))
-        sys.stdout.flush()
+            sys.stdout.flush()
 
 # ----------------------------------------------------------------------------------------
-def _print_synch(comm, msg):
+def debug(m3d, msg, level=0):
+    if m3d.rank == 0:
+        if m3d.debug >= level:
+            print(msg)
+            sys.stdout.flush()
+
+# ----------------------------------------------------------------------------------------
+def debug_synch(m3d, msg, level=0):
     """
         Print messages from each process in an ordered/synchronized manner.
         Collect each message first. Use the internal mpi4py communicator therefore.
         Rank 0 receives, all other process send.
-        
-        """
-    
-    comm_mpi = comm.tompi4py()
-    size = comm.size
-    rank = comm.rank
+    """
+    comm = m3d.comm.tompi4py()
+    size = m3d.size
+    rank = m3d.rank
     
     if size > 1:
         if rank == 0:
             msgs = []
             msgs.append(str(msg))
             for i in range(size-1):
-                req = comm_mpi.irecv(source=i+1, tag=i+1)
+                req = comm.irecv(source=i+1, tag=i+1)
                 msgs.append(str(req.wait()))
-            _print_message(comm, "\n".join(msgs))
+            debug(m3d, "\n".join(msgs), level=level)
         else:
-            req = comm_mpi.isend(msg, dest=0, tag=rank)
+            req = comm.isend(msg, dest=0, tag=rank)
             req.wait()
     else:
-        _print_message(comm, msg)
+        debug(m3d, msg, level=level)
 
 # ----------------------------------------------------------------------------------------
-def read_from_nc_file(m3d, v, file, varname, index):
+def get_key(m3d, caller, dict, key, valuetype):
+    try:
+        value = dict[key]
+        if isinstance(value, valuetype):
+            return value
+        else:
+            error(
+                  m3d,
+                  "{}: Value of key '{}' has type '{}'. Should be: '{}'"
+                  .format(caller, key, type(value).__name__, valuetype.__name__))
+            usage(m3d)
+            sys.exit(1)
+    except Exception as e:
+        error(m3d, "{}: Cannot retrieve '{}' key from configuration.".format(caller, key))
+        usage(m3d)
+        sys.exit(1)
+
+# ----------------------------------------------------------------------------------------
+def get_file(m3d, caller, filepath):
+    try:
+        return open(filepath, "r")
+    except Exception as e:
+        error(m3d, "{}: Cannot open file: {}".format(caller, filepath))
+        error(m3d, e)
+        sys.exit(1)
+
+# ----------------------------------------------------------------------------------------
+def get_hdf5_file(m3d, caller, filepath):
+    try:
+        return h5py.File(filepath, "r")
+    except Exception as e:
+        error(m3d, "{}: Cannot open HDF5 file: {}".format(caller, filepath))
+        error(m3d, e)
+        sys.exit(1)
+
+# ----------------------------------------------------------------------------------------
+def set_vector_from_hdf5_file(m3d, v, file, varname, index):
     
     comm = m3d.comm
     grid = m3d.grid
@@ -113,15 +143,47 @@ def read_from_nc_file(m3d, v, file, varname, index):
             sys.exit(1)
 
 # ----------------------------------------------------------------------------------------
+def get_config_from_yaml_file(m3d, argv):
+    """
+        parameters:
+            argv        # command line arguments
+        
+        the first command line argument is always the name of the current executable,
+        expect the file path as second argument,
+
+        return:
+            config      # configuration, dictionary where the parsed YAML contents is stored
+    """
+
+    if len(argv) > 1:
+        f = get_file(m3d, "get_config_from_yaml_file", argv[1])
+        
+        try:
+            # parse yaml content
+            config = yaml.load(f)
+        except Exception as e:
+            error(m3d, "Cannot parse as YAML file: {}".format(argv[1]))
+            error(m3d, e)
+            sys.exit(1)
+
+        f.close()
+        return config
+
+    else:
+        error(m3d, "No configuration file given.")
+        usage(m3d)
+        sys.exit(0)
+
+# ----------------------------------------------------------------------------------------
 def interp(n, t):
     '''
         compute the interpolation coefficients and indices on the fly
 
         n:  number of intervals [0,1] is devided into
         t:  point in time (in [0,1])
-        
+
         alpha, ialpha, beta, ibeta
-        
+
         '''
 
     w = t * n + 0.5
@@ -129,47 +191,11 @@ def interp(n, t):
     alpha = (1.0 - beta)
     ibeta = int(math.fmod(math.floor(w), n))
     ialpha = int(math.fmod(math.floor(w) + n - 1, n))
-    
+
     return alpha, ialpha, beta, ibeta
 
-# ----------------------------------------------------------------------------------------
-def read_conf_from_yaml_file(m3d, argv):
-    """
-        argv    # command line arguments
-        conf    # dictionary where the parsed YAML contents is stored
-            
-        """
-    
-    comm = m3d.comm
-    
-    # the first command line argument is always the name of the current executable,
-    # expect the file path as second argument,
-    if len(argv) > 1:
-        
-        _print(comm, "parsing configuration file: {}".format(argv[1]))
 
-        try:
-            # open file
-            f = open(argv[1])
-        except Exception as e:
-            _print_error(comm, "Cannot open file: {}".format(argv[1]))
-            _print_error(comm, e)
-            _print_usage(comm)
-            sys.exit(1)
 
-        try:
-            # parse yaml content
-            m3d.conf = yaml.load(f)
-        except Exception as e:
-            _print_error(comm, "Cannot parse as YAML file: {}".format(argv[1]))
-            _print_error(comm, e)
-            _print_usage(comm)
-            sys.exit(1)
 
-        f.close()
-    
-    else:
-        _print_error(comm, "No configuration file given.")
-        _print_usage(comm)
-        sys.exit(0)
+
 
