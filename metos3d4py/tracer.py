@@ -35,20 +35,22 @@ class Tracer:
         return "Tracer: {}".format("...")
 
 # ----------------------------------------------------------------------------------------
-    def init(self, m3d):        
-        util.debug(m3d, self, "...", level=1)
+    def init(self, m3d):
+        
+        config = util.get_key(m3d, self, m3d.config, "Tracer", dict)
+        tracer = util.get_key(m3d, self, config, "Name, Value, Unit, Description", list)
+        output = util.get_key(m3d, self, config, "Output", str)
 
-        config = util.get_key(m3d, "Tracer init", m3d.config, "Tracer", dict)
-        tracer = util.get_key(m3d, "Tracer init", config, "Name, Value, Unit, Description", list)
-        output = util.get_key(m3d, "Tracer init", config, "Output", str)
+        names = [t[0] for t in tracer]
+        util.debug(m3d, self, "Tracers: {}".format(names), level=1)
 
         input = config.get("Input")
         if input is not None:
-            util.debug(m3d, self, "Using input file: {}".format(input), level=1)
-            tracerfile = util.get_hdf5_file(m3d, "Tracer init", input)
+            util.debug(m3d, self, "Init file: {}".format(input), level=1)
+            tracerfile = util.get_hdf5_file(m3d, self, input)
         else:
-            tracervalue = [t[1] for t in tracer]
-            util.debug(m3d, self, "Using init values: {}".format(tracervalue), level=1)
+            values = [t[1] for t in tracer]
+            util.debug(m3d, self, "Init values: {}".format(values), level=1)
 
         # global and local vector length
         nv = m3d.grid.nv
@@ -66,7 +68,8 @@ class Tracer:
                 tracername = tracer[i][0]
                 util.set_vector_from_hdf5_file(m3d, y, tracerfile, tracername, None)
             else:
-                y.set(tracervalue[i])
+                tracervalue = tracer[i][1]
+                y.set(tracervalue)
             y.assemble()
             y0.append(y)
 

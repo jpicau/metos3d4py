@@ -66,8 +66,6 @@ class Metos3D:
     """
 # ----------------------------------------------------------------------------------------
     def __str__(self):
-#        print("{}.__str__".format(self.__class__))
-
         text = 80*"-" + "\n"
         text = text + "Metos3D:\n"
         text = text + str(self.grid) + "\n"
@@ -77,6 +75,7 @@ class Metos3D:
         text = text + str(self.tmm) + "\n"
         text = text + str(self.time) + "\n"
         text = text + str(self.solver) + "\n"
+        text = text + 80*"-"
         return text
 
 # ----------------------------------------------------------------------------------------
@@ -104,7 +103,7 @@ class Metos3D:
         self.config = util.get_config_from_yaml_file(self, argv)
 
         # debug
-        self.debug = util.get_key(self, "Metos3D init", self.config, "Debug", int)
+        self.debug = util.get_key(self, self, self.config, "Debug", int)
         util.debug(self, self, "metos3d version {} ".format(version), level=1)
         if size > 1:
             util.debug(self, self, "parallel run, {} processes".format(size), level=1)
@@ -126,7 +125,7 @@ class Metos3D:
         solver.init(self)
 
         # debug
-        util.debug(self, self, self, level=1)
+        util.debug(self, self, "\n" + str(self), level=1)
 
 # ----------------------------------------------------------------------------------------
     def run(self):

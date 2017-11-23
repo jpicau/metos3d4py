@@ -40,8 +40,8 @@ class Grid:
     def init(self, m3d):
         
         # get 'grid_mask' variable from file
-        filepath = util.get_key(m3d, "Grid init", m3d.config, "Grid", str)
-        gridfile = util.get_hdf5_file(m3d, "Grid init", filepath)
+        filepath = util.get_key(m3d, self, m3d.config, "Grid", str)
+        gridfile = util.get_hdf5_file(m3d, self, filepath)
         grid = gridfile["grid_mask"]
 
         # masks

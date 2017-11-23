@@ -22,8 +22,9 @@ from metos3d4py import util
 # ----------------------------------------------------------------------------------------
 class Load:
     """
-        Load submodule
-        ==============
+        optimal load balancing,
+        for given grid, mask, profiles, vector,
+        between processes,
         
         Attributes:
         nploc
@@ -35,7 +36,11 @@ class Load:
 
 # ----------------------------------------------------------------------------------------
     def __str__(self):
-        
+        """
+            Collect messages from each process in an ordered/synchronized manner.
+            Use the internal mpi4py communicator.
+            Rank 0 receives, all other process send.
+        """
         comm = self.comm.tompi4py()
         size = comm.size
         rank = comm.rank
@@ -50,10 +55,12 @@ class Load:
                 text = "Load:\n" + text
                 msgs.append(text)
                 for i in range(size-1):
+                    # receive
                     req = comm.irecv(source=i+1, tag=i+1)
                     msgs.append(req.wait())
                 return "\n".join(msgs)
             else:
+                # send
                 req = comm.isend(text, dest=0, tag=rank)
                 req.wait()
     
@@ -82,23 +89,31 @@ class Load:
         ranks = numpy.floor((weights/nv)*size)
 
         # count profiles per process
-        rank_unique, rank_index, rank_count = numpy.unique(ranks, return_index = True, return_counts = True)
-        rank_prev = rank_count.cumsum() - rank_count
+        punique, pindex, pcount = numpy.unique(ranks, return_index = True, return_counts = True)
+        pprev = pcount.cumsum() - pcount
 
         # store own in self
-        self.nploc = nploc = rank_count[rank]
-        self.npprev = npprev = rank_prev[rank]
-        
+        self.nploc = nploc = pcount[rank]
+        self.npprev = npprev = pprev[rank]
         self.nvloc = npi[npprev:npprev+nploc].sum()
         self.nvprev = npi[0:npprev].sum()
-    
+
         # store self in m3d
         m3d.load = self
 
-        # compute max diff to optimal
-        opt = nv/size
-        util.debug(m3d, self, "Max error: relative {}, absolute {}".format(opt, opt), level=1)
+        if size > 1:
+            # count vector shares
+            vcount = [npi[i:i+c].sum() for i, c in zip(pindex, pcount)]
+            # compute max diff to optimal
+            opt = float(nv)/size
+            maxdiff = numpy.amax(numpy.abs(numpy.array(vcount) - opt))
+            util.debug(
+                       m3d,
+                       self,
+                       "Optimum: {:.1f}, max error: relative: {:2.6f}, absolute: {}"
+                       .format(opt, maxdiff/opt, int(maxdiff)), level=1)
 
+# ----------------------------------------------------------------------------------------
 
 
 

@@ -36,15 +36,6 @@ def error(m3d, msg):
             print("### ERROR ### {}".format(msg_line))
             sys.stdout.flush()
 
-## ----------------------------------------------------------------------------------------
-#def debug(m3d, msg, level=0):
-#    if m3d.debug >= level:
-#        # __str__
-#        msgstr = str(msg)
-#        if m3d.rank == 0:
-#            print(msgstr)
-#            sys.stdout.flush()
-
 # ----------------------------------------------------------------------------------------
 def debug(m3d, obj, msg, level=0):
     if m3d.debug >= level:
@@ -53,42 +44,17 @@ def debug(m3d, obj, msg, level=0):
         msgstr = objname + "." + funcname + ":"
         msgstr = "{:20}".format(msgstr)
         msgstr = msgstr + str(msg)
-#        msgstr = objname + "." + funcname + ": " + str(msg)
         if m3d.rank == 0:
             print(msgstr)
             sys.stdout.flush()
 
-## ----------------------------------------------------------------------------------------
-#def debug_synch(m3d, msg, level=0):
-#    """
-#        Print messages from each process in an ordered/synchronized manner.
-#        Collect each message first. Use the internal mpi4py communicator therefore.
-#        Rank 0 receives, all other process send.
-#    """
-#    comm = m3d.comm.tompi4py()
-#    size = m3d.size
-#    rank = m3d.rank
-#    
-#    if size > 1:
-#        if rank == 0:
-#            msgs = []
-#            msgs.append(str(msg))
-#            for i in range(size-1):
-#                req = comm.irecv(source=i+1, tag=i+1)
-#                msgs.append(str(req.wait()))
-#            debug(m3d, "\n".join(msgs), level=level)
-#        else:
-#            req = comm.isend(str(msg), dest=0, tag=rank)
-#            req.wait()
-#    else:
-#        debug(m3d, msg, level=level)
-
 # ----------------------------------------------------------------------------------------
-#def get_typed_value_from_key_required(m3d, caller, dict, key, valuetype):
+def get_key(m3d, obj, dict, key, valuetype):
+    
+    objname = obj.__class__.__name__
+    funcname = str(sys._getframe().f_back.f_code.co_name)
+    objstr = objname + "." + funcname + ":"
 
-# ----------------------------------------------------------------------------------------
-#def get_required_typed_value_from_key(m3d, caller, dict, key, valuetype):
-def get_key(m3d, caller, dict, key, valuetype):
     try:
         value = dict[key]
         if isinstance(value, valuetype):
@@ -96,30 +62,40 @@ def get_key(m3d, caller, dict, key, valuetype):
         else:
             error(
                   m3d,
-                  "{}: Value of key '{}' has type '{}'. Should be: '{}'"
-                  .format(caller, key, type(value).__name__, valuetype.__name__))
+                  "{} Value of key '{}' has type '{}'. Should be: '{}'"
+                  .format(objstr, key, type(value).__name__, valuetype.__name__))
             usage(m3d)
             sys.exit(1)
     except Exception as e:
-        error(m3d, "{}: Cannot retrieve '{}' key from configuration.".format(caller, key))
+        error(m3d, "{} Cannot retrieve '{}' key from configuration.".format(objstr, key))
         usage(m3d)
         sys.exit(1)
 
 # ----------------------------------------------------------------------------------------
-def get_file(m3d, caller, filepath):
+def get_file(m3d, obj, filepath):
+    
+    objname = obj.__class__.__name__
+    funcname = str(sys._getframe().f_back.f_code.co_name)
+    objstr = objname + "." + funcname + ":"
+
     try:
         return open(filepath, "r")
     except Exception as e:
-        error(m3d, "{}: Cannot open file: {}".format(caller, filepath))
+        error(m3d, "{} Cannot open file: {}".format(objstr, filepath))
         error(m3d, e)
         sys.exit(1)
 
 # ----------------------------------------------------------------------------------------
-def get_hdf5_file(m3d, caller, filepath):
+def get_hdf5_file(m3d, obj, filepath):
+    
+    objname = obj.__class__.__name__
+    funcname = str(sys._getframe().f_back.f_code.co_name)
+    objstr = objname + "." + funcname + ":"
+
     try:
         return h5py.File(filepath, "r")
     except Exception as e:
-        error(m3d, "{}: Cannot open HDF5 file: {}".format(caller, filepath))
+        error(m3d, "{} Cannot open HDF5 file: {}".format(objstr, filepath))
         error(m3d, e)
         sys.exit(1)
 
@@ -175,7 +151,7 @@ def get_config_from_yaml_file(m3d, argv):
     """
 
     if len(argv) > 1:
-        f = get_file(m3d, "get_config_from_yaml_file", argv[1])
+        f = get_file(m3d, m3d, argv[1])
         
         try:
             # parse yaml content
