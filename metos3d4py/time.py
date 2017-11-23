@@ -39,7 +39,7 @@ class Time:
     def init(self, m3d):
         
         comm = m3d.comm
-        conf = m3d.conf["Time"]
+        conf = m3d.config["Time"]
 
         self.t0 = conf["Start"]
         self.nt = conf["Count"]

@@ -17,7 +17,7 @@
 #
 
 import numpy
-from metos3d4py.util import util
+from metos3d4py import util
 
 # ----------------------------------------------------------------------------------------
 class Load:

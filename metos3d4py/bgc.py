@@ -19,7 +19,7 @@
 import numpy
 import h5py
 from petsc4py import PETSc
-from metos3d4py.util import util
+from metos3d4py import util
 
 class BGC:
     """
@@ -45,15 +45,34 @@ class BGC:
         return "BGC:\n  Model name: {}".format(self.name)
  
  # ----------------------------------------------------------------------------------------
-     def init(self, m3d):
-         util.debug(m3d, "BGC init: {}".format("..."), level=1)
-         
-#         config =
+    def init(self, m3d):
+        util.debug(m3d, "BGC init: {}".format("..."), level=1)
+        
+        try:
+            config = m3d.config["BGC"]
+        except Exception as e:
+            util.debug(m3d, "BGC init: No 'BGC' key found. Procceding without BGC model.", level=1)
 
-         self.init_parameter(m3d)
-         self.init_boundary_data(m3d)
-         self.init_domain_data(m3d)
-         m3d.bgc = self
+            # set to empty
+            self.nu = 0
+            self.u = []
+
+            self.nb = 0
+            self.nbi = []
+            self.b = []
+#            self.bj = bj
+
+            self.nd = 0
+            self.ndi = []
+            self.d = []
+#            self.dj = dj
+
+            return
+
+#        self.init_parameter(m3d)
+#        self.init_boundary_data(m3d)
+#        self.init_domain_data(m3d)
+        m3d.bgc = self
 
 # ----------------------------------------------------------------------------------------
     def init_parameter(self, m3d):
@@ -179,8 +198,8 @@ class BGC:
                 
             file.close()
 
-        self.domain_list = domain_list
-        self.domain_path = domain_path
+#        self.domain_list = domain_list
+#        self.domain_path = domain_path
     
         self.nd = nd
         self.ndi = ndi

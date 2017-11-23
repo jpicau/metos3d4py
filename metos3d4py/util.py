@@ -69,6 +69,10 @@ def debug_synch(m3d, msg, level=0):
         debug(m3d, msg, level=level)
 
 # ----------------------------------------------------------------------------------------
+#def get_typed_value_from_key_required(m3d, caller, dict, key, valuetype):
+
+# ----------------------------------------------------------------------------------------
+#def get_required_typed_value_from_key(m3d, caller, dict, key, valuetype):
 def get_key(m3d, caller, dict, key, valuetype):
     try:
         value = dict[key]

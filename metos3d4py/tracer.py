@@ -19,7 +19,7 @@
 import sys
 import h5py
 from petsc4py import PETSc
-from metos3d4py.util import util
+from metos3d4py import util
 
 class Tracer:
     """
@@ -37,6 +37,9 @@ class Tracer:
 # ----------------------------------------------------------------------------------------
     def init(self, m3d):
         
+#        print(dir(self))
+        print(self.__class__)
+
         util.debug(m3d, "Tracer init: {}".format("..."), level=1)
 
         config = util.get_key(m3d, "Tracer init", m3d.config, "Tracer", dict)

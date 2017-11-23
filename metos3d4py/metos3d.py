@@ -32,7 +32,6 @@
 from petsc4py import PETSc
 
 from metos3d4py.version     import VERSION
-from metos3d4py.util        import util
 from metos3d4py.grid        import Grid
 from metos3d4py.load        import Load
 from metos3d4py.tracer      import Tracer
@@ -40,6 +39,7 @@ from metos3d4py.bgc         import BGC
 from metos3d4py.tmm         import TMM
 from metos3d4py.time        import Time
 from metos3d4py.solver      import Solver
+from metos3d4py             import util
 
 # ----------------------------------------------------------------------------------------
 class Metos3D:
@@ -93,6 +93,7 @@ class Metos3D:
         self.config = util.get_config_from_yaml_file(self, argv)
 
         # debug
+#        self.debug = util.get_key(self, "Metos3D init", self.config, "Debug", int)
         self.debug = util.get_key(self, "Metos3D init", self.config, "Debug", int)
         util.debug(self, "metos3d version {} ".format(version), level=1)
         if size > 1:
@@ -140,13 +141,13 @@ class Metos3D:
             yjp1 = [yjp11, ..., yjp1ny]
             
         """
-        
+
         # compute solution
         self.solver.solve(self)
         
         # store as hdf5 file
-        self.tracer.write(self)
-    
+#        self.tracer.write(self)
+
 #        comm = self.comm
 #        t0, dt, nt = self.time.get()
 #        ny, y0, yj, yexpj, qj = self.bgc.tracer.get()
@@ -232,7 +233,11 @@ class Metos3D:
             final()
 
             finalize metos3d context,
-            """
+        """
+        
+        # if output
+        # store to disc
+        
         pass
 
 

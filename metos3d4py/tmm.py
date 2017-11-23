@@ -40,7 +40,7 @@ class TMM:
     def init(self, m3d):
         
         comm = m3d.comm
-        conf_tmm = m3d.conf["TMM"]
+        conf_tmm = m3d.config["TMM"]
     
         self.path = path = conf_tmm["Path"]
         

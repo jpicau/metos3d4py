@@ -31,6 +31,13 @@ Debug:          3
 
 Grid:           mitgcm-128x64x15/grid.nc
 
+Tracer:
+    Name, Value, Unit, Description:
+        - [N,   2.14,   mmol P m-3, phosphate]
+#        - [DOP, 1.e-4,  mmol P m-3, dissolved organic phosphorous]
+#    Input:      test/N.nc
+    Output:     test/N.nc
+
 Solver:
     Type:       Spinup
     Count:      1 # 3000
@@ -40,13 +47,6 @@ Time:
     Start:      0.0
     Count:      1 # 2880
     Step:       0.0003472222222222
-
-Tracer:
-    Name, Value, Unit, Description:
-        - [N,   2.14,   mmol P m-3, phosphate]
-#        - [DOP, 1.e-4,  mmol P m-3, dissolved organic phosphorous]
-#    Input:      test/N.nc
-    Output:     test/N.nc
 
 BGC:
     Name:       N
@@ -70,6 +70,7 @@ BGC:
 #            - [temp, 12, temperature,    degree celcius, temp.nc]
 
 TMM:
+#    Path:       mitgcm-128x64x15-360d-3h/
     Path:       mitgcm-128x64x15/
     # Name, Count, File
     Explicit:   [Aexp, 12, Aexp.nc]

@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from metos3d4py.util import util
+from metos3d4py import util
 
 class Solver:
     """
@@ -31,13 +31,19 @@ class Solver:
         """
 
 # ----------------------------------------------------------------------------------------
+    def solve_empty(self, m3d):
+        util.debug(m3d, "Solver: Testing empty solver. Just returns.")
+        return
+
+# ----------------------------------------------------------------------------------------
     def solve(self, m3d):
         comm = m3d.comm
         time = m3d.time
-        util._print(comm, "Solver: Solve ...")
+        util.debug(m3d, "Solver: Solve ...")
     
         nl = self.nl
         yl = self.yl
+#        for i in range(nl):
 
 # ----------------------------------------------------------------------------------------
     def __str__(self):
@@ -45,17 +51,21 @@ class Solver:
 
 # ----------------------------------------------------------------------------------------
     def init(self, m3d):
-        import sys
-        # check solver key
+
         comm = m3d.comm
         try:
-            conf = m3d.conf["Solver"]
+            conf = m3d.config["Solver"]
         except Exception as e:
-            util._print_error(comm, "Solver init: Cannot retrieve '{}' key from configuration.".format("Solver"))
-            util._print_usage(comm)
-            sys.exit(1)
-        
-        self.nl = conf["Count"]
+            util.error(m3d, "Solver init: Cannot retrieve '{}' key from configuration.".format("Solver"))
+
+            self.nl = 0#conf["Count"]
+            self.yl = []
+
+            self.solve = self.solve_empty
+#            util._print_usage(comm)
+#            sys.exit(1)
+
+        self.nl = 0#conf["Count"]
         self.yl = []
 
         m3d.solver = self
