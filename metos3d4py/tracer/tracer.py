@@ -16,10 +16,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-#import numpy
-#import h5py
-#from petsc4py import PETSc
-#from metos3d4py.util import util
+import sys
+import h5py
+from petsc4py import PETSc
+from metos3d4py.util import util
 
 class Tracer:
     """
@@ -40,14 +40,28 @@ class Tracer:
         comm = m3d.comm
         grid = m3d.grid
         load = m3d.load
-        conf = m3d.conf["Tracer"]
         
+        # check tracer key
+        try:
+            conf = m3d.conf["Tracer"]
+        except Exception as e:
+            util._print_error(comm, "Tracer: Cannot retrieve tracer key from configuration.")
+            sys.exit(1)
+
         tracer = conf["Name, Value, Unit, Description"]
         output = conf["Output"]
 
         input = conf.get("Input")
         if input is not None:
             util._print(comm, "Tracer init: Using input file: {}".format(input))
+        
+            try:
+                file = h5py.File(input, "r")
+            except Exception as e:
+                util._print_error(comm, "Cannot open file: {}".format(input))
+                util._print_error(comm, e)
+                sys.exit(1)
+
         else:
             values = [t[1] for t in tracer]
             util._print(comm, "Tracer init: Using init values: {}".format(values))
@@ -64,13 +78,15 @@ class Tracer:
             y.setSizes((nvloc, nv))
             if input is not None:
                 # read in
-                util.set_from_nc_file(comm, grid, y, input, tracer[i][0], None)  # tracer name
+                util.read_from_nc_file(m3d, y, file, tracer[i][0], None)  # tracer name
+#                util.set_from_nc_file(comm, grid, y, input, tracer[i][0], None)  # tracer name
             else:
                 # set to tracer value
                 y.set(tracer[i][1])
             y.assemble()
             y0.append(y)
 
+        self.ny = ny
         self.y0 = y0
         self.output = output
         

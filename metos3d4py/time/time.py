@@ -29,7 +29,7 @@ class Time:
 
 # ----------------------------------------------------------------------------------------
     def __str__(self):
-        return "TimeStep:\n  t0: {}\n  nt: {}\n  dt: {}".format(self.t0, self.nt, self.dt)
+        return "Time:\n  t0: {}\n  nt: {}\n  dt: {}".format(self.t0, self.nt, self.dt)
 
 ## ----------------------------------------------------------------------------------------
 #    def get(self):
@@ -39,7 +39,7 @@ class Time:
     def init(self, m3d):
         
         comm = m3d.comm
-        conf = m3d.conf["Time step"]
+        conf = m3d.conf["Time"]
 
         self.t0 = conf["Start"]
         self.nt = conf["Count"]

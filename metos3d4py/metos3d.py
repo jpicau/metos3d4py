@@ -63,9 +63,11 @@ class Metos3D:
             final():    finalize the context
     
     """
+# ----------------------------------------------------------------------------------------
+    def __str__(self):
+        return "Metos3D:\n  {}".format("...")
 
 # ----------------------------------------------------------------------------------------
-
     def init(self, argv):
         """
             check computation model ...
@@ -96,8 +98,7 @@ class Metos3D:
         util.read_conf_from_yaml_file(self, argv)
 
         # create
-        grid, load, tracer, bgc, tmm, time, solver =
-            Grid(), Load(), Tracer(), BGC(), TMM(), Time(), Solver()
+        grid, load, tracer, bgc, tmm, time, solver = Grid(), Load(), Tracer(), BGC(), TMM(), Time(), Solver()
 
         # init
         grid.init(self)
@@ -135,6 +136,9 @@ class Metos3D:
         """
         # compute solution
         self.solver.solve(self)
+        # store to disk
+#        self.tracer.
+#        util.write_to_nc
     
 #        comm = self.comm
 #        t0, dt, nt = self.time.get()
@@ -175,14 +179,14 @@ class Metos3D:
 #
 #        # init
 #        for i in range(ny):
-#            yj[i] = y0[i]
+#            yl[i] = y0[i]
 #
 #        # spin up
 #        for l in range(nl):
 #
 #            # store state at begin of model year
 #            for i in range(ny):
-#                yl[i] = y0[i]
+#                yj[i] = yl[i]
 #
 #            # time step
 #            for j in range(nt):

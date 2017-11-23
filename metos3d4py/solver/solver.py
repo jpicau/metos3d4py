@@ -45,9 +45,15 @@ class Solver:
 
 # ----------------------------------------------------------------------------------------
     def init(self, m3d):
-        
+        import sys
+        # check solver key
         comm = m3d.comm
-        conf = m3d.conf["Solver"]
+        try:
+            conf = m3d.conf["Solver"]
+        except Exception as e:
+            util._print_error(comm, "Solver init: Cannot retrieve '{}' key from configuration.".format("Solver"))
+            util._print_usage(comm)
+            sys.exit(1)
         
         self.nl = conf["Count"]
         self.yl = []

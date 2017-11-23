@@ -43,10 +43,7 @@ Tracer:
     Name, Value, Unit, Description:
         - [N,   2.14,   mmol P m-3, phosphate]
 #        - [DOP, 1.e-4,  mmol P m-3, dissolved organic phosphorous]
-#        - [y, 1.0,  1, dummy]
-#        - [y1, 0.0,  1, first bgc variable]
-#        - [y2, 0.0,  1, second bcg variable]
-    Input:      test/N.nc
+#    Input:      test/N.nc
     Output:     test/N.nc
 
 BGC:

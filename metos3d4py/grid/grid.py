@@ -16,7 +16,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import sys
 import h5py
+from metos3d4py.util import util
 
 """
     Grid submodule
@@ -45,16 +47,32 @@ class Grid:
 
     def init(self, m3d):
         
+        comm = m3d.comm
+        conf = m3d.conf
+
+        # check grid key
+        try:
+            file_path = conf["Grid"]
+            util._print(comm, "Grid init: Using input file: {}".format(file_path))
+        except Exception as e:
+            util._print_error(comm, "Grid init: Cannot retrieve grid key from configuration.")
+            sys.exit(1)
+        
         # grid file
-        file_path = m3d.conf["Grid file"]
-        grid_file = h5py.File(file_path, "r")
+        try:
+            grid_file = h5py.File(file_path, "r")
+        except Exception as e:
+            util._print_error(comm, "Grid init: Cannot open file.")
+            util._print_error(comm, e)
+            sys.exit(1)
+        
         grid = grid_file["grid_mask"]
         
         # masks
         mask3d = (grid[...] != grid.fillvalue)
         mask2d = mask3d[0,...]
         
-        # vector an dprofiles
+        # vector and profiles
         nv = mask3d.sum()                           # vector length
         np = mask2d.sum()                           # profile count
         npi = mask3d.sum(axis=0)[mask2d]            # each profile length

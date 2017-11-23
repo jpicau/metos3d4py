@@ -77,6 +77,7 @@ def _print_synch(comm, msg):
 # ----------------------------------------------------------------------------------------
 def read_from_nc_file(m3d, v, file, varname, index):
     
+    comm = m3d.comm
     grid = m3d.grid
     mask3d = grid.mask3d
     mask2d = grid.mask2d
@@ -100,14 +101,16 @@ def read_from_nc_file(m3d, v, file, varname, index):
             # mask3d
             v[start:end] = var[index,...][mask3d][nc2tmm][start:end]
         else:
-            util._print_error(comm, "Variable: {} required to be 2D or 3D. Shape is: {} With index: {}".format(varname, var.shape, index))
+            _print_error(comm, "Variable: '{}' required to be 2D or 3D. Shape is: {} With index: {}".format(varname, var.shape, index))
+            sys.exit(1)
     else:
         if len(var.shape) == 2:
             v[start:end] = var[...][mask2d][start:end]
         elif len(var.shape) == 3:
             v[start:end] = var[...][mask3d][nc2tmm][start:end]
         else:
-            util._print_error(comm, "Variable: {} required to be 2D or 3D. Shape is: {} ".format(varname, var.shape))
+            _print_error(comm, "Variable: '{}' required to be 2D or 3D. Shape is: {} ".format(varname, var.shape))
+            sys.exit(1)
 
 # ----------------------------------------------------------------------------------------
 def interp(n, t):
