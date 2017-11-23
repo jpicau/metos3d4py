@@ -35,15 +35,28 @@ class Load:
 
 # ----------------------------------------------------------------------------------------
     def __str__(self):
-        size = self.size
-        rank = self.rank
         
+        comm = self.comm.tompi4py()
+        size = comm.size
+        rank = comm.rank
+
         text = ""
-        if rank == 0:
-            text = text + "Load:\n"
         text = text + "  rank: {:3d}/{}   ".format(rank, size)
         text = text + "  npprev, nploc: {:5d} {:5d}   ".format(self.npprev, self.nploc)
         text = text + "  nvprev, nvloc: {:7d} {:7d}   ".format(self.nvprev, self.nvloc)
+        if size > 1:
+            msgs = []
+            if rank == 0:
+                text = "Load:\n" + text
+                msgs.append(text)
+                for i in range(size-1):
+                    req = comm.irecv(source=i+1, tag=i+1)
+                    msgs.append(req.wait())
+                return "\n".join(msgs)
+            else:
+                req = comm.isend(text, dest=0, tag=rank)
+                req.wait()
+    
         return text
 
 # ----------------------------------------------------------------------------------------
@@ -51,13 +64,14 @@ class Load:
         
         comm = m3d.comm
         grid = m3d.grid
-        util.debug(m3d, "Load init: {}".format("..."), level=1)
 
-        # store own copy of rank and size for __str__
+        # store own copy of comm for __str__
+        self.comm = m3d.comm
+
         self.size = size = comm.size
         self.rank = rank = comm.rank
-        
-        # ...
+
+        # vector length, profile count, profile depths
         nv = grid.nv
         np = grid.np
         npi = grid.npi
@@ -67,23 +81,25 @@ class Load:
         weights = starts + 0.5*npi
         ranks = numpy.floor((weights/nv)*size)
 
+        # count profiles per process
         rank_unique, rank_index, rank_count = numpy.unique(ranks, return_index = True, return_counts = True)
         rank_prev = rank_count.cumsum() - rank_count
 
-        nploc = rank_count[rank]
-        npprev = rank_prev[rank]
-
-        nvloc = npi[npprev:npprev+nploc].sum()
-        nvprev = npi[0:npprev].sum()
-
-        # store in self
-        self.nploc = nploc
-        self.npprev = npprev
-        self.nvloc = nvloc
-        self.nvprev = nvprev
+        # store own in self
+        self.nploc = nploc = rank_count[rank]
+        self.npprev = npprev = rank_prev[rank]
+        
+        self.nvloc = npi[npprev:npprev+nploc].sum()
+        self.nvprev = npi[0:npprev].sum()
     
         # store self in m3d
         m3d.load = self
+
+        # compute max diff to optimal
+        opt = nv/size
+        util.debug(m3d, self, "Max error: relative {}, absolute {}".format(opt, opt), level=1)
+
+
 
 
 

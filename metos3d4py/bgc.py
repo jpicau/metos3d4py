@@ -42,32 +42,33 @@ class BGC:
 
 # ----------------------------------------------------------------------------------------
     def __str__(self):
-        return "BGC:\n  Model name: {}".format(self.name)
+        return "BGC:\n  {}".format("...")
  
  # ----------------------------------------------------------------------------------------
     def init(self, m3d):
-        util.debug(m3d, "BGC init: {}".format("..."), level=1)
-        
+#        util.debug(m3d, "BGC init: {}".format("..."), level=1)
+        util.debug(m3d, self, "{}".format("..."), level=1)
+
         try:
             config = m3d.config["BGC"]
         except Exception as e:
-            util.debug(m3d, "BGC init: No 'BGC' key found. Procceding without BGC model.", level=1)
-
-            # set to empty
-            self.nu = 0
-            self.u = []
-
-            self.nb = 0
-            self.nbi = []
-            self.b = []
-#            self.bj = bj
-
-            self.nd = 0
-            self.ndi = []
-            self.d = []
-#            self.dj = dj
-
+            util.debug(m3d, self, "No 'BGC' key found. Procceding without BGC model.", level=1)
+            m3d.bgc = None
             return
+
+#            # set to empty
+#            self.nu = 0
+#            self.u = []
+#
+#            self.nb = 0
+#            self.nbi = []
+#            self.b = []
+##            self.bj = bj
+#
+#            self.nd = 0
+#            self.ndi = []
+#            self.d = []
+##            self.dj = dj
 
 #        self.init_parameter(m3d)
 #        self.init_boundary_data(m3d)
@@ -77,7 +78,7 @@ class BGC:
 # ----------------------------------------------------------------------------------------
     def init_parameter(self, m3d):
         
-        conf_bgc = m3d.conf["BGC"]
+        conf_bgc = m3d.config["BGC"]
 
         # list of parameters
         parameter = conf_bgc["Parameter"]["Name, Value, Unit, Description"]

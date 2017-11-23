@@ -21,7 +21,7 @@ from metos3d4py import util
 # ----------------------------------------------------------------------------------------
 class Grid:
     """
-        an intance of the grid class is used to store the grid context,
+        grid context,
         
         grid masks, 2d/3d,
         compute vector length, number of profiles, profile depths,
@@ -31,27 +31,31 @@ class Grid:
 
 # ----------------------------------------------------------------------------------------
     def __str__(self):
+#        text = ""
+#        text = text +
+#        print("{}.__str__".format(self.__class__))
         return "Grid:\n  Vector length:   {}\n  Profile count:   {}\n  Profile lengths: {}".format(self.nv, self.np, self.npi)
 
 # ----------------------------------------------------------------------------------------
     def init(self, m3d):
         
-        util.debug(m3d, "Grid init: {}".format("..."), level=1)
-
-        # get grid_mask variable from file
+        # get 'grid_mask' variable from file
         filepath = util.get_key(m3d, "Grid init", m3d.config, "Grid", str)
         gridfile = util.get_hdf5_file(m3d, "Grid init", filepath)
         grid = gridfile["grid_mask"]
-        
+
         # masks
         mask3d = (grid[...] != grid.fillvalue)
         mask2d = mask3d[0,...]
         
+        # not needed any more
+        gridfile.close()
+
         # vector and profiles
         nv = mask3d.sum()                           # vector length
         np = mask2d.sum()                           # profile count
         npi = mask3d.sum(axis=0)[mask2d]            # each profile length
-        
+
         # index permutation from nc/3d to tmm/1d
         nc3d = mask3d[...].astype(">i4")
         (nz, ny, nx) = nc3d.shape
@@ -68,10 +72,11 @@ class Grid:
         self.npi = npi
         self.nc2tmm = nc2tmm
     
+        util.debug(m3d, self, "Shape: {}, profile count: {}, vector length: {}".format(mask3d.shape, np, nv), level=1)
+
         # store self in m3d
         m3d.grid = self
 
-        gridfile.close()
 
 
 

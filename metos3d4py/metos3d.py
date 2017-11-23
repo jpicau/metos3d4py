@@ -66,7 +66,18 @@ class Metos3D:
     """
 # ----------------------------------------------------------------------------------------
     def __str__(self):
-        return "Metos3D:\n  {}".format("...")
+#        print("{}.__str__".format(self.__class__))
+
+        text = 80*"-" + "\n"
+        text = text + "Metos3D:\n"
+        text = text + str(self.grid) + "\n"
+        text = text + str(self.load) + "\n"
+        text = text + str(self.tracer) + "\n"
+        text = text + str(self.bgc) + "\n"
+        text = text + str(self.tmm) + "\n"
+        text = text + str(self.time) + "\n"
+        text = text + str(self.solver) + "\n"
+        return text
 
 # ----------------------------------------------------------------------------------------
     def init(self, argv):
@@ -93,14 +104,13 @@ class Metos3D:
         self.config = util.get_config_from_yaml_file(self, argv)
 
         # debug
-#        self.debug = util.get_key(self, "Metos3D init", self.config, "Debug", int)
         self.debug = util.get_key(self, "Metos3D init", self.config, "Debug", int)
-        util.debug(self, "metos3d version {} ".format(version), level=1)
+        util.debug(self, self, "metos3d version {} ".format(version), level=1)
         if size > 1:
-            util.debug(self, "parallel run, {} processes".format(size), level=1)
+            util.debug(self, self, "parallel run, {} processes".format(size), level=1)
         else:
-            util.debug(self, "sequential run, {} process".format(size), level=1)
-        util.debug(self, "config file: {}".format(argv[1]), level=1)
+            util.debug(self, self, "sequential run, {} process".format(size), level=1)
+        util.debug(self, self, "config file: {}".format(argv[1]), level=1)
 
         # create
         grid, load, tracer, bgc, tmm, time, solver = \
@@ -116,7 +126,7 @@ class Metos3D:
         solver.init(self)
 
         # debug
-        util.debug(self, self, level=1)
+        util.debug(self, self, self, level=1)
 
 # ----------------------------------------------------------------------------------------
     def run(self):

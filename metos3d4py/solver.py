@@ -32,14 +32,14 @@ class Solver:
 
 # ----------------------------------------------------------------------------------------
     def solve_empty(self, m3d):
-        util.debug(m3d, "Solver: Testing empty solver. Just returns.")
+        util.debug(m3d, self, "Testing empty solver. Just returns.")
         return
 
 # ----------------------------------------------------------------------------------------
     def solve(self, m3d):
         comm = m3d.comm
         time = m3d.time
-        util.debug(m3d, "Solver: Solve ...")
+        util.debug(m3d, self, "Solve ...")
     
         nl = self.nl
         yl = self.yl

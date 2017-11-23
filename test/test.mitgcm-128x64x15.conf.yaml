@@ -35,7 +35,7 @@ Tracer:
     Name, Value, Unit, Description:
         - [N,   2.14,   mmol P m-3, phosphate]
 #        - [DOP, 1.e-4,  mmol P m-3, dissolved organic phosphorous]
-#    Input:      test/N.nc
+    Input:      test/N.nc
     Output:     test/N.nc
 
 Solver:

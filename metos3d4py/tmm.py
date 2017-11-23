@@ -18,6 +18,7 @@
 
 import numpy
 from petsc4py import PETSc
+from metos3d4py import util
 
 class TMM:
     """
@@ -38,7 +39,15 @@ class TMM:
 # ----------------------------------------------------------------------------------------
 
     def init(self, m3d):
-        
+        util.debug(m3d, self, "{}".format("..."), level=1)
+
+        try:
+            config = m3d.config["TMM"]
+        except Exception as e:
+            util.debug(m3d, self, "No 'TMM' key found. Procceding without TMM model.", level=1)
+            m3d.tmm = None
+            return
+
         comm = m3d.comm
         conf_tmm = m3d.config["TMM"]
     

@@ -36,37 +36,52 @@ def error(m3d, msg):
             print("### ERROR ### {}".format(msg_line))
             sys.stdout.flush()
 
-# ----------------------------------------------------------------------------------------
-def debug(m3d, msg, level=0):
-    if m3d.rank == 0:
-        if m3d.debug >= level:
-            print(msg)
-            sys.stdout.flush()
+## ----------------------------------------------------------------------------------------
+#def debug(m3d, msg, level=0):
+#    if m3d.debug >= level:
+#        # __str__
+#        msgstr = str(msg)
+#        if m3d.rank == 0:
+#            print(msgstr)
+#            sys.stdout.flush()
 
 # ----------------------------------------------------------------------------------------
-def debug_synch(m3d, msg, level=0):
-    """
-        Print messages from each process in an ordered/synchronized manner.
-        Collect each message first. Use the internal mpi4py communicator therefore.
-        Rank 0 receives, all other process send.
-    """
-    comm = m3d.comm.tompi4py()
-    size = m3d.size
-    rank = m3d.rank
-    
-    if size > 1:
-        if rank == 0:
-            msgs = []
-            msgs.append(str(msg))
-            for i in range(size-1):
-                req = comm.irecv(source=i+1, tag=i+1)
-                msgs.append(str(req.wait()))
-            debug(m3d, "\n".join(msgs), level=level)
-        else:
-            req = comm.isend(msg, dest=0, tag=rank)
-            req.wait()
-    else:
-        debug(m3d, msg, level=level)
+def debug(m3d, obj, msg, level=0):
+    if m3d.debug >= level:
+        objname = obj.__class__.__name__
+        funcname = str(sys._getframe().f_back.f_code.co_name)
+        msgstr = objname + "." + funcname + ":"
+        msgstr = "{:20}".format(msgstr)
+        msgstr = msgstr + str(msg)
+#        msgstr = objname + "." + funcname + ": " + str(msg)
+        if m3d.rank == 0:
+            print(msgstr)
+            sys.stdout.flush()
+
+## ----------------------------------------------------------------------------------------
+#def debug_synch(m3d, msg, level=0):
+#    """
+#        Print messages from each process in an ordered/synchronized manner.
+#        Collect each message first. Use the internal mpi4py communicator therefore.
+#        Rank 0 receives, all other process send.
+#    """
+#    comm = m3d.comm.tompi4py()
+#    size = m3d.size
+#    rank = m3d.rank
+#    
+#    if size > 1:
+#        if rank == 0:
+#            msgs = []
+#            msgs.append(str(msg))
+#            for i in range(size-1):
+#                req = comm.irecv(source=i+1, tag=i+1)
+#                msgs.append(str(req.wait()))
+#            debug(m3d, "\n".join(msgs), level=level)
+#        else:
+#            req = comm.isend(str(msg), dest=0, tag=rank)
+#            req.wait()
+#    else:
+#        debug(m3d, msg, level=level)
 
 # ----------------------------------------------------------------------------------------
 #def get_typed_value_from_key_required(m3d, caller, dict, key, valuetype):
@@ -120,8 +135,8 @@ def set_vector_from_hdf5_file(m3d, v, file, varname, index):
     try:
         var = file[varname]
     except Exception as e:
-        _print_error(comm, "Cannot retrieve variable: {}".format(varname))
-        _print_error(comm, e)
+        error(comm, "Cannot retrieve variable: {}".format(varname))
+        error(comm, e)
         sys.exit(1)
 
     start, end = v.getOwnershipRange()
@@ -135,7 +150,7 @@ def set_vector_from_hdf5_file(m3d, v, file, varname, index):
             # mask3d
             v[start:end] = var[index,...][mask3d][nc2tmm][start:end]
         else:
-            _print_error(comm, "Variable: '{}' required to be 2D or 3D. Shape is: {} With index: {}".format(varname, var.shape, index))
+            error(comm, "Variable: '{}' required to be 2D or 3D. Shape is: {} With index: {}".format(varname, var.shape, index))
             sys.exit(1)
     else:
         if len(var.shape) == 2:
@@ -143,7 +158,7 @@ def set_vector_from_hdf5_file(m3d, v, file, varname, index):
         elif len(var.shape) == 3:
             v[start:end] = var[...][mask3d][nc2tmm][start:end]
         else:
-            _print_error(comm, "Variable: '{}' required to be 2D or 3D. Shape is: {} ".format(varname, var.shape))
+            error(comm, "Variable: '{}' required to be 2D or 3D. Shape is: {} ".format(varname, var.shape))
             sys.exit(1)
 
 # ----------------------------------------------------------------------------------------
