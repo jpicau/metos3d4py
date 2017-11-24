@@ -31,10 +31,8 @@ import sys
 import metos3d4py as m3d
 
 if __name__ == "__main__":
-    sim = m3d.Metos3D()
     
-    sim.init(sys.argv)
+    sim = m3d.Metos3D(sys.argv)
     sim.run()
-    sim.final()
 
 

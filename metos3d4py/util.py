@@ -39,13 +39,20 @@ def error(m3d, msg):
 # ----------------------------------------------------------------------------------------
 def debug(m3d, obj, msg, level=0):
     if m3d.debug >= level:
-        objname = obj.__class__.__name__
-        funcname = str(sys._getframe().f_back.f_code.co_name)
-        msgstr = objname + "." + funcname + ":"
-        msgstr = "{:20}".format(msgstr)
-        msgstr = msgstr + str(msg)
+        # get string from every process first
+        msgstr = str(msg)
         if m3d.rank == 0:
-            print(msgstr)
+
+            objname = obj.__class__.__name__
+            funcname = str(sys._getframe().f_back.f_code.co_name)
+
+            lines = msgstr.split("\n")
+            firstline = "{:>10}".format(objname + ":")
+            prefix = "{:<10}".format(" ")
+            
+            print(firstline)
+            for line in lines:
+                print(prefix + line)
             sys.stdout.flush()
 
 # ----------------------------------------------------------------------------------------
@@ -151,6 +158,7 @@ def get_config_from_yaml_file(m3d, argv):
     """
 
     if len(argv) > 1:
+        
         f = get_file(m3d, m3d, argv[1])
         
         try:

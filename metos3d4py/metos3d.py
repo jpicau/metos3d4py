@@ -26,8 +26,7 @@
         h5py        hdf5 for python, netdcf 4 files, binary, parallel i/o
         petcs4py    parallel computation, data types, operations, solvers, ...
         yaml        option format, compact, human readable and writable
-    
-    """
+"""
 
 from petsc4py import PETSc
 
@@ -64,22 +63,13 @@ class Metos3D:
             final():    finalize the context
     
     """
-# ----------------------------------------------------------------------------------------
-    def __str__(self):
-        text = 80*"-" + "\n"
-        text = text + "Metos3D:\n"
-        text = text + str(self.grid) + "\n"
-        text = text + str(self.load) + "\n"
-        text = text + str(self.tracer) + "\n"
-        text = text + str(self.bgc) + "\n"
-        text = text + str(self.tmm) + "\n"
-        text = text + str(self.time) + "\n"
-        text = text + str(self.solver) + "\n"
-        text = text + 80*"-"
-        return text
 
 # ----------------------------------------------------------------------------------------
-    def init(self, argv):
+    def __str__(self):
+        return "metos3d version {} ".format(VERSION)
+
+# ----------------------------------------------------------------------------------------
+    def __init__(self, argv):
         """
             check computation model ...
             print version,
@@ -90,8 +80,8 @@ class Metos3D:
 
             Parameters:
                 argv:   list with command arguments, file path of yaml conf file
-                
-            """
+
+        """
         
         # version and runtime context
         self.version    = version   = VERSION
@@ -102,30 +92,34 @@ class Metos3D:
         # config
         self.config = util.get_config_from_yaml_file(self, argv)
 
-        # debug
+        # debug level
         self.debug = util.get_key(self, self, self.config, "Debug", int)
-        util.debug(self, self, "metos3d version {} ".format(version), level=1)
-        if size > 1:
-            util.debug(self, self, "parallel run, {} processes".format(size), level=1)
-        else:
-            util.debug(self, self, "sequential run, {} process".format(size), level=1)
-        util.debug(self, self, "config file: {}".format(argv[1]), level=1)
-
-        # create
-        grid, load, tracer, bgc, tmm, time, solver = \
-            Grid(), Load(), Tracer(), BGC(), TMM(), Time(), Solver()
+        util.debug(self, self, self, level=1)
 
         # init
-        grid.init(self)
-        load.init(self)
-        tracer.init(self)
-        bgc.init(self)
-        tmm.init(self)
-        time.init(self)
-        solver.init(self)
+        self.grid = Grid(self)
+#        self.grid = grid = Grid(self)
+#        util.debug(self, grid, grid, level=1)
+
+        self.load = Load(self)
+#        self.load = load = Load(self)
+#        util.debug(self, load, load, level=1)
+
+#, load, tracer, bgc, tmm, time, solver = \
+#            Grid(), Load(), Tracer(), BGC(), TMM(), Time(), Solver()
+
+#        # init
+#        grid.init(self)
+#        load.init(self)
+#        tracer.init(self)
+#        bgc.init(self)
+#        tmm.init(self)
+#        time.init(self)
+#        solver.init(self)
 
         # debug
-        util.debug(self, self, "\n" + str(self), level=1)
+
+
 
 # ----------------------------------------------------------------------------------------
     def run(self):
@@ -150,10 +144,11 @@ class Metos3D:
             yjp1 = [yjp11, ..., yjp1ny]
             
         """
-
-        # compute solution
-        self.solver.solve(self)
         
+        pass
+        # compute solution
+#        self.solver.solve(self)
+
         # store as hdf5 file
 #        self.tracer.write(self)
 
