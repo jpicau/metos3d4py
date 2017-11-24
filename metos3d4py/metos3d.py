@@ -99,23 +99,16 @@ class Metos3D:
         # init
         self.grid = Grid(self)
         self.load = Load(self)
-#        self.load = load = Load(self)
-#        util.debug(self, load, load, level=1)
+        self.tracer = Tracer(self)
 
-#, load, tracer, bgc, tmm, time, solver = \
-#            Grid(), Load(), Tracer(), BGC(), TMM(), Time(), Solver()
+#, tracer, bgc, tmm, time, solver = \
+#            Tracer(), BGC(), TMM(), Time(), Solver()
 
-#        # init
-#        grid.init(self)
-#        load.init(self)
 #        tracer.init(self)
 #        bgc.init(self)
 #        tmm.init(self)
 #        time.init(self)
 #        solver.init(self)
-
-        # debug
-
 
 
 # ----------------------------------------------------------------------------------------
@@ -142,6 +135,11 @@ class Metos3D:
             
         """
         
+        self.tracer.set(self)
+        
+#        self.solver.solve(self)
+#        self.tracer.save(self)
+
         pass
         # compute solution
 #        self.solver.solve(self)
@@ -228,19 +226,19 @@ class Metos3D:
 #                # error
 ##                norm2 = norm2(yl, yj)
 
-# ----------------------------------------------------------------------------------------
-    def final(self):
-        """
-            final()
-
-            finalize metos3d context,
-        """
-        
-        # if output
-        # store to disc
-        
-        pass
-
+## ----------------------------------------------------------------------------------------
+#    def final(self):
+#        """
+#            final()
+#
+#            finalize metos3d context,
+#        """
+#        
+#        # if output
+#        # store to disc
+#        
+#        pass
+#
 
 
 

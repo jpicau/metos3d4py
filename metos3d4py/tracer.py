@@ -26,60 +26,74 @@ class Tracer:
         Tracer context
         
         Attributes:
+            ny      number of tracers
             y0      initial tracers
 
         """
 
 # ----------------------------------------------------------------------------------------
     def __str__(self):
-        return "Tracer: {}".format("...")
+        text = "{:<3} {:16} {:16} {:16} {:16}\n".format("no","name", "value", "unit","description")
+        tracer = self.tracer
+        ny = self.ny
+        for i in range(ny):
+            name = str(tracer[i][0])
+            value = float(tracer[i][1])
+            unit = str(tracer[i][2])
+            descr = str(tracer[i][3])
+            text = text + "{:<3d} {:16.16} {:<16e} {:16.16} {:42.42}\n".format(i, name, value, unit, descr)
+        text = text + " input file: {}\n".format(self.input)
+        text = text + "output file: {}".format(self.output)
+        return text
 
 # ----------------------------------------------------------------------------------------
-    def init(self, m3d):
+    def __init__(self, m3d):
         
         config = util.get_key(m3d, self, m3d.config, "Tracer", dict)
-        tracer = util.get_key(m3d, self, config, "Name, Value, Unit, Description", list)
-        output = util.get_key(m3d, self, config, "Output", str)
-
-        names = [t[0] for t in tracer]
-        util.debug(m3d, self, "Tracers: {}".format(names), level=1)
-
-        input = config.get("Input")
-        if input is not None:
-            util.debug(m3d, self, "Init file: {}".format(input), level=1)
-            tracerfile = util.get_hdf5_file(m3d, self, input)
-        else:
-            values = [t[1] for t in tracer]
-            util.debug(m3d, self, "Init values: {}".format(values), level=1)
+        self.tracer = tracer = util.get_key(m3d, self, config, "Name, Value, Unit, Description", list)
+        self.output = config.get("Output")
+        self.input = config.get("Input")
 
         # global and local vector length
         nv = m3d.grid.nv
         nvloc = m3d.load.nvloc
                 
-        # create tracer vectors
-        ny = len(tracer)
-        y0 = []
-        for i in range(ny):
-            y = PETSc.Vec()
-            y.create()
-            y.setType(PETSc.Vec.Type.STANDARD)
-            y.setSizes((nvloc, nv))
-            if input is not None:
-                tracername = tracer[i][0]
-                util.set_vector_from_hdf5_file(m3d, y, tracerfile, tracername, None)
-            else:
-                tracervalue = tracer[i][1]
-                y.set(tracervalue)
-            y.assemble()
-            y0.append(y)
+        self.ny = ny = len(tracer)
+        self.y0 = util.create_petsc_vectors(ny, (nvloc, nv))
 
-        self.ny = ny
-        self.y0 = y0
-        self.output = output
+        # debug
+        util.debug(m3d, self, self, level=1)
 
-        m3d.tracer = self
+# ----------------------------------------------------------------------------------------
+    def set(self, m3d):
+        util.debug(m3d, self, "Tracer: set {}".format(""), level=1)
 
+#        if input is not None:
+#            util.debug(m3d, self, "Init file: {}".format(input), level=1)
+#            tracerfile = util.get_hdf5_file(m3d, self, input)
+#        else:
+#            values = [t[1] for t in tracer]
+#            util.debug(m3d, self, "Init values: {}".format(values), level=1)
 
+#            if input is not None:
+#                tracername = tracer[i][0]
+#                util.set_vector_from_hdf5_file(m3d, y, tracerfile, tracername, None)
+#            else:
+#                tracervalue = tracer[i][1]
+#                y.set(tracervalue)
+
+#        print(self.y0)
+
+#        y0 = util.create_vectors(ny, (nvloc, nv))
+#        for i in range(ny):
+#            y = PETSc.Vec()
+#            y.create()
+#            y.setType(PETSc.Vec.Type.STANDARD)
+#            y.setSizes((nvloc, nv))
+#
+#
+#            y.assemble()
+#            y0.append(y)
 
 
 

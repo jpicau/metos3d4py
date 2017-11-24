@@ -107,6 +107,18 @@ def get_hdf5_file(m3d, obj, filepath):
         sys.exit(1)
 
 # ----------------------------------------------------------------------------------------
+def create_petsc_vectors(ny, sizes):
+    vv = []
+    for i in range(ny):
+        v = PETSc.Vec()
+        v.create()
+        v.setType(PETSc.Vec.Type.STANDARD)
+        v.setSizes(sizes)
+        v.assemble()
+        vv.append(v)
+    return vv
+
+# ----------------------------------------------------------------------------------------
 def set_vector_from_hdf5_file(m3d, v, file, varname, index):
     
     comm = m3d.comm
@@ -196,6 +208,11 @@ def interp(n, t):
     ialpha = int(math.fmod(math.floor(w) + n - 1, n))
 
     return alpha, ialpha, beta, ibeta
+
+
+
+
+
 
 
 
