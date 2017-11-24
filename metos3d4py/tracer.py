@@ -33,7 +33,7 @@ class Tracer:
 
 # ----------------------------------------------------------------------------------------
     def __str__(self):
-        text = "{:<3} {:16} {:16} {:16} {:16}\n".format("no","name", "value", "unit","description")
+        text = "{:<3} {:16} {:16} {:16} {:16}\n".format("no", "name", "value", "unit","description")
         tracer = self.tracer
         ny = self.ny
         for i in range(ny):
@@ -94,6 +94,10 @@ class Tracer:
 #
 #            y.assemble()
 #            y0.append(y)
+
+# ----------------------------------------------------------------------------------------
+    def save(self, m3d):
+        util.debug(m3d, self, "Tracer: save {}".format(""), level=1)
 
 
 

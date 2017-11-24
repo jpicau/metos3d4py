@@ -30,9 +30,7 @@ class BGC:
             tracer
             input
             output
-            
-            ny
-            
+
             y
             yj
             qj
@@ -42,170 +40,162 @@ class BGC:
 
 # ----------------------------------------------------------------------------------------
     def __str__(self):
-        return "BGC:\n  {}".format("...")
- 
+        
+        if not self.usebgc:
+            return "none"
+                
+        text = ""
+        text = text + "name: {}\n".format(self.name)
+
+        text = text + "parameter:\n"
+        if self.useparam:
+            text = text + "  {:<3} {:16} {:16} {:16} {:16}\n".format("no","name", "value", "unit","description")
+            parameter = self.parameter
+            nu = self.nu
+            for i in range(nu):
+                name = str(parameter[i][0])
+                value = float(parameter[i][1])
+                unit = str(parameter[i][2])
+                descr = str(parameter[i][3])
+                text = text + "  {:<3d} {:16.16} {:<16e} {:16.16} {:42.42}\n".format(i, name, value, unit, descr)
+        else:
+            text = text + "  none\n"
+
+        text = text + "boundary data:\n"
+        if self.useboundary:
+            text = text + "path: {}\n".format(self.boundary_path)
+            text = text + "  {:<3} {:16} {:5} {:24} {:16} {:16}\n".format("no", "name", "count", "description", "unit", "file")
+            boundary = self.boundary
+            nb = self.nb
+            for i in range(nb):
+                name = str(boundary[i][0])
+                count = self.nbi[i]
+                descr = str(boundary[i][2])
+                unit = str(boundary[i][3])
+                file = str(boundary[i][4])
+                text = text + "  {:<3d} {:16.16} {:>5d} {:24.24} {:16.16} {:16.16}\n".format(i, name, count, descr, unit, file)
+        else:
+            text = text + "  none\n"
+
+        text = text + "domain data:\n"
+        if self.usedomain:
+            text = text + "path: {}\n".format(self.domain_path)
+            text = text + "  {:<3} {:16} {:5} {:24} {:16} {:16}\n".format("no", "name", "count", "description", "unit", "file")
+            domain = self.domain
+            nd = self.nd
+            for i in range(nd):
+                name = str(domain[i][0])
+                count = self.nbi[i]
+                descr = str(domain[i][2])
+                unit = str(domain[i][3])
+                file = str(domain[i][4])
+                text = text + "  {:<3d} {:16.16} {:>5d} {:24.24} {:16.16} {:16.16}\n".format(i, name, count, descr, unit, file)
+        else:
+            text = text + "  none\n"
+
+        text = text.rstrip()
+
+        return text
+
  # ----------------------------------------------------------------------------------------
-    def init(self, m3d):
-#        util.debug(m3d, "BGC init: {}".format("..."), level=1)
-        util.debug(m3d, self, "{}".format("..."), level=1)
+    def __init__(self, m3d):
+        
+        self.config = config = m3d.config.get("BGC")
+        if config is None:
+            self.usebgc = False
+        else:
+            self.usebgc = True
+            self.name = util.get_key(m3d, self, config, "Name", str)
+            
+            self.init_parameter(m3d)
+            self.init_boundary_data(m3d)
+            self.init_domain_data(m3d)
 
-        try:
-            config = m3d.config["BGC"]
-        except Exception as e:
-            util.debug(m3d, self, "No 'BGC' key found. Procceding without BGC model.", level=1)
-            m3d.bgc = None
-            return
-
-#            # set to empty
-#            self.nu = 0
-#            self.u = []
-#
-#            self.nb = 0
-#            self.nbi = []
-#            self.b = []
-##            self.bj = bj
-#
-#            self.nd = 0
-#            self.ndi = []
-#            self.d = []
-##            self.dj = dj
-
-#        self.init_parameter(m3d)
-#        self.init_boundary_data(m3d)
-#        self.init_domain_data(m3d)
-        m3d.bgc = self
+        # debug
+        util.debug(m3d, self, self, level=1)
 
 # ----------------------------------------------------------------------------------------
     def init_parameter(self, m3d):
-        
-        conf_bgc = m3d.config["BGC"]
 
-        # list of parameters
-        parameter = conf_bgc["Parameter"]["Name, Value, Unit, Description"]
-        
-        nu = len(parameter)
+        config = self.config.get("Parameter")
+        if config is None:
+            self.useparam = False
+            return
+        else:
+            self.useparam = True
+            
+        self.parameter = parameter = util.get_key(m3d, self, config, "Name, Value, Unit, Description", list)
+
+        self.nu = nu = len(parameter)
         u = []
         for i in range(nu):
-            u.append(parameter[i][1])   # value
-        u = numpy.array(u)
-
-        self.parameter = parameter
-        self.nu = nu
-        self.u = u
+            value = parameter[i][1]
+            u.append(value)
+        self.u = numpy.array(u)
 
 # ----------------------------------------------------------------------------------------
     def init_boundary_data(self, m3d):
         
-        comm = m3d.comm
-        grid = m3d.grid
-        load = m3d.load
-        conf_bgc = m3d.conf["BGC"]
-
-        # list of boundary data
-        boundary_list = conf_bgc["Boundary data"]["Name, Count, Description, Unit, File"]
-        boundary_path = conf_bgc["Boundary data"]["Path"]
-
-        np = grid.np
-        nploc = load.nploc
-
-        nb = len(boundary_list)
-        b = []
-        bj = []
-        nbi = []
-        for i in range(nb):
-            b.append([])
-            nbi.append(boundary_list[i][1])                                             # count
-
-            filepath = boundary_path + boundary_list[i][4]                              # file
-            util._print(comm, "BGC init boundary: Using input file: {}".format(filepath))
-
-            try:
-                file = h5py.File(filepath, "r")
-            except Exception as e:
-                util._print_error(comm, "Cannot open file: {}".format(filepath))
-                util._print_error(comm, e)
-                sys.exit(1)
+        config = self.config.get("Boundary data")
+        if config is None:
+            self.useboundary = False
+            return
+        else:
+            self.useboundary = True
             
-            for j in range(nbi[i]):
-                bw = PETSc.Vec()
-                bw.create()
-                bw.setType(PETSc.Vec.Type.STANDARD)
-                bw.setSizes((nploc, np))
-                # !!! read in !!!
-                util.read_from_nc_file(m3d, bw, file, boundary_list[i][0], j)     # boundary data name
-                # !!! read in !!!
-                bw.assemble()
-                b[i].append(bw)
-            # vector for interpolation
-            bj.append(b[i][0].duplicate())
-                
-            file.close()
+        self.boundary = boundary = util.get_key(m3d, self, config, "Name, Count, Description, Unit, File", list)
+        self.boundary_path = util.get_key(m3d, self, config, "Path", str)
 
-        self.boundary_list = boundary_list
-        self.boundary_path = boundary_path
-        
-        self.nb = nb
+        np = m3d.grid.np
+        nploc = m3d.load.nploc
+
+        self.nb = nb = len(boundary)
+        nbi = []
+        b = []
+        for i in range(nb):
+            
+            count = boundary[i][1]
+            nbi.append(count)
+
+            bi = util.create_petsc_vectors(nbi[i], (nploc, np))
+            b.append(bi)
+
         self.nbi = nbi
         self.b = b
-        self.bj = bj
             
 # ----------------------------------------------------------------------------------------
     def init_domain_data(self, m3d):
 
-        comm = m3d.comm
-        grid = m3d.grid
-        load = m3d.load
-        conf_bgc = m3d.conf["BGC"]
+        config = self.config.get("Domain data")
+        if config is None:
+            self.usedomain = False
+            return
+        else:
+            self.usedomain = True
 
-        # list of domain data
-        domain_list = conf_bgc["Domain data"]["Name, Count, Description, Unit, File"]
-        domain_path = conf_bgc["Domain data"]["Path"]
-#        domain_list = conf["Name, Count, Description, Unit, File"]
-#        domain_path = conf["Path"]
+        self.domain = domain = util.get_key(m3d, self, config, "Name, Count, Description, Unit, File", list)
+        self.domain_path = util.get_key(m3d, self, config, "Path", str)
 
-        nv = grid.nv
-        nvloc = load.nvloc
+        nv = m3d.grid.nv
+        nvloc = m3d.load.nvloc
         
-        nd = len(domain_list)
-        d = []
-        dj = []
+        self.nd = nd = len(domain)
         ndi = []
-        
+        d = []
         for i in range(nd):
-            d.append([])
-            ndi.append(domain_list[i][1])                                               # count
             
-            filepath = domain_path + domain_list[i][4]                                  # file
-            util._print(comm, "BGC init domain: Using input file: {}".format(filepath))
+            count = domain[i][1]
+            ndi.append(count)
+            
+            di = util.create_petsc_vectors(ndi[i], (nvloc, nv))
+            d.append(di)
 
-            try:
-                file = h5py.File(filepath, "r")
-            except Exception as e:
-                util._print_error(comm, "Cannot open file: {}".format(filepath))
-                util._print_error(comm, e)
-                sys.exit(1)
-
-            for j in range(ndi[i]):
-                dw = PETSc.Vec()
-                dw.create()
-                dw.setType(PETSc.Vec.Type.STANDARD)
-                dw.setSizes((nvloc, nv))
-                # !!! read in !!!
-                util.read_from_nc_file(m3d, dw, file, domain_list[i][0], j)             # domain data name
-                # !!! read in !!!
-                dw.assemble()
-                d[i].append(dw)
-            dj.append(d[i][0].duplicate())
-                
-            file.close()
-
-#        self.domain_list = domain_list
-#        self.domain_path = domain_path
-    
-        self.nd = nd
         self.ndi = ndi
         self.d = d
-        self.dj = dj
+
+# ----------------------------------------------------------------------------------------
+    def set(self):
+        util.debug(m3d, self, "BGC set ...", level=1)
 
 # ----------------------------------------------------------------------------------------
     def bgc(self, m3d, dt, qj, tj, yj, u, bj, dj):
@@ -219,3 +209,67 @@ class BGC:
 
 
 
+
+
+
+
+
+
+
+#            filepath = boundary_path + boundary_list[i][4]                              # file
+#            util._print(comm, "BGC init boundary: Using input file: {}".format(filepath))
+#
+#            try:
+#                file = h5py.File(filepath, "r")
+#            except Exception as e:
+#                util._print_error(comm, "Cannot open file: {}".format(filepath))
+#                util._print_error(comm, e)
+#                sys.exit(1)
+
+
+#            for j in range(nbi[i]):
+#                bw = PETSc.Vec()
+#                bw.create()
+#                bw.setType(PETSc.Vec.Type.STANDARD)
+#                bw.setSizes((nploc, np))
+#                # !!! read in !!!
+#                util.read_from_nc_file(m3d, bw, file, boundary_list[i][0], j)     # boundary data name
+#                # !!! read in !!!
+#                bw.assemble()
+#                b[i].append(bw)
+#            # vector for interpolation
+#            bj.append(b[i][0].duplicate())
+#
+#            file.close()
+
+#            filepath = domain_path + domain_list[i][4]                                  # file
+#            util._print(comm, "BGC init domain: Using input file: {}".format(filepath))
+#
+#            try:
+#                file = h5py.File(filepath, "r")
+#            except Exception as e:
+#                util._print_error(comm, "Cannot open file: {}".format(filepath))
+#                util._print_error(comm, e)
+#                sys.exit(1)
+#
+#            for j in range(ndi[i]):
+#                dw = PETSc.Vec()
+#                dw.create()
+#                dw.setType(PETSc.Vec.Type.STANDARD)
+#                dw.setSizes((nvloc, nv))
+#                # !!! read in !!!
+#                util.read_from_nc_file(m3d, dw, file, domain_list[i][0], j)             # domain data name
+#                # !!! read in !!!
+#                dw.assemble()
+#                d[i].append(dw)
+#            dj.append(d[i][0].duplicate())
+#
+#            file.close()
+#
+##        self.domain_list = domain_list
+##        self.domain_path = domain_path
+#
+#        self.nd = nd
+#        self.ndi = ndi
+#        self.d = d
+#        self.dj = dj

@@ -100,9 +100,10 @@ class Metos3D:
         self.grid = Grid(self)
         self.load = Load(self)
         self.tracer = Tracer(self)
+        self.bgc = BGC(self)
 
-#, tracer, bgc, tmm, time, solver = \
-#            Tracer(), BGC(), TMM(), Time(), Solver()
+#tmm, time, solver = \
+#            TMM(), Time(), Solver()
 
 #        tracer.init(self)
 #        bgc.init(self)
@@ -138,7 +139,8 @@ class Metos3D:
         self.tracer.set(self)
         
 #        self.solver.solve(self)
-#        self.tracer.save(self)
+
+        self.tracer.save(self)
 
         pass
         # compute solution

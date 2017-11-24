@@ -38,6 +38,11 @@ class Time:
 # ----------------------------------------------------------------------------------------
     def init(self, m3d):
         
+#        self.bj = bj
+#        self.dj = dj
+#        self.yj = yj
+#        self.qj = qj
+
         comm = m3d.comm
         conf = m3d.config["Time"]
 
