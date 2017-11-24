@@ -98,9 +98,6 @@ class Metos3D:
 
         # init
         self.grid = Grid(self)
-#        self.grid = grid = Grid(self)
-#        util.debug(self, grid, grid, level=1)
-
         self.load = Load(self)
 #        self.load = load = Load(self)
 #        util.debug(self, load, load, level=1)

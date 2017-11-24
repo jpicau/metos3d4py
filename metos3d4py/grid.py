@@ -32,18 +32,9 @@ class Grid:
 # ----------------------------------------------------------------------------------------
     def __str__(self):
         text = ""
-#        text = text + "Grid:\n"
-#        text = text + "shape: {}\n".format(self.mask3d.shape)
-#        text = text + "profile count: {}\n".format(self.np)
-#        text = text + "vector length: {}".format(self.nv)
         text = text + "        shape: {}\n".format(self.mask3d.shape)
         text = text + "profile count: {}\n".format(self.np)
         text = text + "vector length: {}".format(self.nv)
-#        text = ""
-#        text = text +
-#        print("{}.__str__".format(self.__class__))
-#        util.debug(m3d, self, "Shape: {}, profile count: {}, vector length: {}".format(mask3d.shape, np, nv), level=1)
-#        return "Grid:\n  Vector length:   {}\n  Profile count:   {}\n  Profile lengths: {}".format(self.nv, self.np, self.npi)
         return text
 
 # ----------------------------------------------------------------------------------------
@@ -76,19 +67,6 @@ class Grid:
 
         # debug
         util.debug(m3d, self, self, level=1)
-
-#        # store in self
-#        self.mask3d = mask3d
-#        self.mask2d = mask2d
-#        self.nv = nv
-#        self.np = np
-#        self.npi = npi
-#        self.nc2tmm = nc2tmm
-
-#        util.debug(m3d, self, "Shape: {}, profile count: {}, vector length: {}".format(mask3d.shape, np, nv), level=1)
-
-#        # store self in m3d
-#        m3d.grid = self
 
 
 

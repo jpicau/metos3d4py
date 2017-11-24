@@ -41,31 +41,45 @@ class Load:
             Use the internal mpi4py communicator.
             Rank 0 receives, all other process send.
         """
+        
         comm = self.comm.tompi4py()
         size = comm.size
         rank = comm.rank
 
+        # sequential run
         text = ""
-        
-#        if size > 1:
-#            util.debug(m3d, self, "parallel run, {} processes".format(size), level=1)
+        if size == 1:
+            text = text + "sequential run, 1 process"
+            return text
 
-        text = text + "rank: {:3d}/{}   ".format(rank, size)
-        text = text + "npprev, nploc: {:5d} {:5d}   ".format(self.npprev, self.nploc)
-        text = text + "nvprev, nvloc: {:7d} {:7d}   ".format(self.nvprev, self.nvloc)
-        
+        # parallel run
         if rank == 0:
-            text = "distribution: \n" + text
-        
+            header = ""
+            header = header + "parallel run, {} processes\n".format(size)
+            header = header + "process   profiles                    vector"
+
+            opt = self.opt
+            maxdiff = self.maxdiff
+            
+            footer = ""
+            footer = footer + "optimal vector length: {:.1f}\n".format(opt)
+            footer = footer + "   max relative error: {:2.6f}\n".format(maxdiff/opt)
+            footer = footer + "   max absolute error: {:.1f}".format(maxdiff)
+
+        text = text + "{:3d}/{:<3d}   ".format(rank, size)
+        text = text + "start, count: {:5d} {:5d}   ".format(self.npprev, self.nploc)
+        text = text + "start, count: {:7d} {:7d}   ".format(self.nvprev, self.nvloc)
+
         if size > 1:
             msgs = []
             if rank == 0:
-#                text = "Load:\n" + text
+                msgs.append(header)
                 msgs.append(text)
                 for i in range(size-1):
                     # receive
                     req = comm.irecv(source=i+1, tag=i+1)
                     msgs.append(req.wait())
+                msgs.append(footer)
                 return "\n".join(msgs)
             else:
                 # send
@@ -114,38 +128,12 @@ class Load:
         self.opt = opt = float(nv)/size
         self.maxdiff = maxdiff = numpy.amax(numpy.abs(numpy.array(vcount) - opt))
 
-#        print("{} {}, {} {}".format(self.nvloc, self.nvprev, , ))
-
-#        # store self in m3d
-#        m3d.load = self
-
-#        # debug
-#        if size > 1:
-#            util.debug(self, self, "parallel run, {} processes".format(size), level=1)
-#        else:
-#            util.debug(self, self, "sequential run, {} process".format(size), level=1)
-#        util.debug(self, self, "config file: {}".format(argv[1]), level=1)
-
-#        if size > 1:
-#            util.debug(m3d, self, "parallel run, {} processes".format(size), level=1)
-#
-#            # compute max diff to optimal
-#            self.opt = opt = float(nv)/size
-#            self.maxdiff = maxdiff = numpy.amax(numpy.abs(numpy.array(vcount) - opt))
-#            util.debug(
-#                       m3d,
-#                       self,
-#                       "optimum: {:.1f}, max error: relative: {:2.6f}, absolute: {}"
-#                       .format(opt, maxdiff/opt, int(maxdiff)), level=1)
-#        else:
-#            util.debug(m3d, self, "sequential run, {} process".format(size), level=1)
-
         # debug
         util.debug(m3d, self, self, level=1)
 
 
 
-# ----------------------------------------------------------------------------------------
+
 
 
 
