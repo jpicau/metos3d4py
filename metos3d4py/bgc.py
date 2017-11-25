@@ -49,7 +49,7 @@ class BGC:
 
         text = text + "parameter:\n"
         if self.useparam:
-            text = text + "  {:<3} {:16} {:16} {:16} {:16}\n".format("no","name", "value", "unit","description")
+            text = text + "  {:<3} {:16} {:16} {:16} {:16}\n".format("no", "name", "value", "unit", "description")
             parameter = self.parameter
             nu = self.nu
             for i in range(nu):

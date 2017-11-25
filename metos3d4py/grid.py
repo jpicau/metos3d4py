@@ -26,8 +26,7 @@ class Grid:
         grid masks, 2d/3d,
         compute vector length, number of profiles, profile depths,
         permutation index from nc/3d to tmm/1d
-
-        """
+    """
 
 # ----------------------------------------------------------------------------------------
     def __str__(self):

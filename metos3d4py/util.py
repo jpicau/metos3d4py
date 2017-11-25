@@ -86,7 +86,8 @@ def get_file(m3d, obj, filepath):
     objstr = objname + "." + funcname + ":"
 
     try:
-        return open(filepath, "r")
+        file = open(filepath, "r")
+        return file
     except Exception as e:
         error(m3d, "{} Cannot open file: {}".format(objstr, filepath))
         error(m3d, e)
@@ -100,7 +101,8 @@ def get_hdf5_file(m3d, obj, filepath):
     objstr = objname + "." + funcname + ":"
 
     try:
-        return h5py.File(filepath, "r")
+        file = h5py.File(filepath, "r")
+        return file
     except Exception as e:
         error(m3d, "{} Cannot open HDF5 file: {}".format(objstr, filepath))
         error(m3d, e)
@@ -118,43 +120,43 @@ def create_petsc_vectors(ny, sizes):
         vv.append(v)
     return vv
 
-# ----------------------------------------------------------------------------------------
-def set_vector_from_hdf5_file(m3d, v, file, varname, index):
-    
-    comm = m3d.comm
-    grid = m3d.grid
-    mask3d = grid.mask3d
-    mask2d = grid.mask2d
-    nc2tmm = grid.nc2tmm
-
-    try:
-        var = file[varname]
-    except Exception as e:
-        error(comm, "Cannot retrieve variable: {}".format(varname))
-        error(comm, e)
-        sys.exit(1)
-
-    start, end = v.getOwnershipRange()
-
-    if index is not None:
-        # C order, slowest dim left
-        if len(var.shape) == 3:
-            # mask2d
-            v[start:end] = var[index,...][mask2d][start:end]
-        elif len(var.shape) == 4:
-            # mask3d
-            v[start:end] = var[index,...][mask3d][nc2tmm][start:end]
-        else:
-            error(comm, "Variable: '{}' required to be 2D or 3D. Shape is: {} With index: {}".format(varname, var.shape, index))
-            sys.exit(1)
-    else:
-        if len(var.shape) == 2:
-            v[start:end] = var[...][mask2d][start:end]
-        elif len(var.shape) == 3:
-            v[start:end] = var[...][mask3d][nc2tmm][start:end]
-        else:
-            error(comm, "Variable: '{}' required to be 2D or 3D. Shape is: {} ".format(varname, var.shape))
-            sys.exit(1)
+## ----------------------------------------------------------------------------------------
+#def set_vector_from_hdf5_file(m3d, v, file, varname, index):
+#
+#    comm = m3d.comm
+#    grid = m3d.grid
+#    mask3d = grid.mask3d
+#    mask2d = grid.mask2d
+#    nc2tmm = grid.nc2tmm
+#
+#    try:
+#        var = file[varname]
+#    except Exception as e:
+#        error(comm, "Cannot retrieve variable: {}".format(varname))
+#        error(comm, e)
+#        sys.exit(1)
+#
+#    start, end = v.getOwnershipRange()
+#
+#    if index is not None:
+#        # C order, slowest dim left
+#        if len(var.shape) == 3:
+#            # mask2d
+#            v[start:end] = var[index,...][mask2d][start:end]
+#        elif len(var.shape) == 4:
+#            # mask3d
+#            v[start:end] = var[index,...][mask3d][nc2tmm][start:end]
+#        else:
+#            error(comm, "Variable: '{}' required to be 2D or 3D. Shape is: {} With index: {}".format(varname, var.shape, index))
+#            sys.exit(1)
+#    else:
+#        if len(var.shape) == 2:
+#            v[start:end] = var[...][mask2d][start:end]
+#        elif len(var.shape) == 3:
+#            v[start:end] = var[...][mask3d][nc2tmm][start:end]
+#        else:
+#            error(comm, "Variable: '{}' required to be 2D or 3D. Shape is: {} ".format(varname, var.shape))
+#            sys.exit(1)
 
 # ----------------------------------------------------------------------------------------
 def get_config_from_yaml_file(m3d, argv):
@@ -189,25 +191,25 @@ def get_config_from_yaml_file(m3d, argv):
         usage(m3d)
         sys.exit(0)
 
-# ----------------------------------------------------------------------------------------
-def interp(n, t):
-    '''
-        compute the interpolation coefficients and indices on the fly
-
-        n:  number of intervals [0,1] is devided into
-        t:  point in time (in [0,1])
-
-        alpha, ialpha, beta, ibeta
-
-        '''
-
-    w = t * n + 0.5
-    beta = math.fmod(w, 1.0)
-    alpha = (1.0 - beta)
-    ibeta = int(math.fmod(math.floor(w), n))
-    ialpha = int(math.fmod(math.floor(w) + n - 1, n))
-
-    return alpha, ialpha, beta, ibeta
+## ----------------------------------------------------------------------------------------
+#def interp(n, t):
+#    '''
+#        compute the interpolation coefficients and indices on the fly
+#
+#        n:  number of intervals [0,1] is devided into
+#        t:  point in time (in [0,1])
+#
+#        alpha, ialpha, beta, ibeta
+#
+#        '''
+#
+#    w = t * n + 0.5
+#    beta = math.fmod(w, 1.0)
+#    alpha = (1.0 - beta)
+#    ibeta = int(math.fmod(math.floor(w), n))
+#    ialpha = int(math.fmod(math.floor(w) + n - 1, n))
+#
+#    return alpha, ialpha, beta, ibeta
 
 
 
