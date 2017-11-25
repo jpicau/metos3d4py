@@ -16,6 +16,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from metos3d4py import util
+
 class Time:
     """
         Time step context
@@ -29,28 +31,33 @@ class Time:
 
 # ----------------------------------------------------------------------------------------
     def __str__(self):
-        return "Time:\n  t0: {}\n  nt: {}\n  dt: {}".format(self.t0, self.nt, self.dt)
-
-## ----------------------------------------------------------------------------------------
-#    def get(self):
-#        return self.t0, self.nt, self.dt
+        text = ""
+        text = text + "start: {}\n".format(self.t0)
+        text = text + "count: {}\n".format(self.nt)
+        text = text + " step: {}".format(self.dt)
+        return text
 
 # ----------------------------------------------------------------------------------------
-    def init(self, m3d):
+    def __init__(self, m3d):
         
+        config = util.get_key(m3d, self, m3d.config, "Time", dict)
+
+        self.t0 = util.get_key(m3d, self, config, "Start", float)
+        self.nt = util.get_key(m3d, self, config, "Count", int)
+        self.dt = util.get_key(m3d, self, config, "Step", float)
+
 #        self.bj = bj
 #        self.dj = dj
 #        self.yj = yj
+#        self.yexpj = yexpj
 #        self.qj = qj
 
-        comm = m3d.comm
-        conf = m3d.config["Time"]
+        # debug
+        util.debug(m3d, self, self, level=1)
 
-        self.t0 = conf["Start"]
-        self.nt = conf["Count"]
-        self.dt = conf["Step"]
 
-        m3d.time = self
+
+
 
 
 

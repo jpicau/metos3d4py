@@ -35,50 +35,109 @@ class TMM:
             Aimpj
 
         """
+    
+# ----------------------------------------------------------------------------------------
+    def __init__(self, m3d):
+
+        self.config = config = m3d.config.get("TMM")
+        if config is None:
+            self.use_tmm = False
+        else:
+            self.use_tmm = True
+
+            self.path = util.get_key(m3d, self, config, "Path", str)
+            self.init_explicit(m3d)
+            self.init_implicit(m3d)
+
+        # debug
+        util.debug(m3d, self, self, level=1)
 
 # ----------------------------------------------------------------------------------------
-
-    def init(self, m3d):
-        util.debug(m3d, self, "{}".format("..."), level=1)
-
-        try:
-            config = m3d.config["TMM"]
-        except Exception as e:
-            util.debug(m3d, self, "No 'TMM' key found. Procceding without TMM model.", level=1)
-            m3d.tmm = None
+    def init_explicit(self, m3d):
+    
+        self.explicit = explicit = self.config.get("Explicit")
+        if explicit is None:
+            self.use_explicit = False
             return
+        else:
+            self.use_explicit = True
 
-        comm = m3d.comm
-        conf_tmm = m3d.config["TMM"]
-    
-        self.path = path = conf_tmm["Path"]
-        
         # Name, Count, File
-        self.exp_list = exp_list = conf_tmm["Explicit"]
-        self.imp_list = imp_list = conf_tmm["Implicit"]
-    
-        self.nexp = nexp = exp_list[1]
-        self.Aexp = exp_list[2]
-        # !!! read in !!!
-        # !!! read in !!!
-        for i in range(nexp):
-            pass
-        # Aexpj
-
-        self.nimp = nimp = imp_list[1]
-        self.Aimp = imp_list[2]
-        # !!! read in !!!
-        # !!! read in !!!
-        for i in range(nimp):
-            pass
-        # Aimpj
-
-        m3d.tmm = self
+        self.nexp = explicit[1]
 
 # ----------------------------------------------------------------------------------------
+    def init_implicit(self, m3d):
 
+        self.implicit = implicit = self.config.get("Implicit")
+        if implicit is None:
+            self.use_implicit = False
+            return
+        else:
+            self.use_implicit = True
+
+        # Name, Count, File
+        self.nimp = implicit[1]
+
+# ----------------------------------------------------------------------------------------
+    def set(self):
+        util.debug(m3d, self, "TMM set ...", level=1)
+
+#        self.nexp = nexp = exp_list[1]
+#        self.Aexp = exp_list[2]
+#        # !!! read in !!!
+#        # !!! read in !!!
+#        for i in range(nexp):
+#            pass
+#        # Aexpj
+#
+#        self.nimp = nimp = imp_list[1]
+#        self.Aimp = imp_list[2]
+#        # !!! read in !!!
+#        # !!! read in !!!
+#        for i in range(nimp):
+#            pass
+#        # Aimpj
+
+# ----------------------------------------------------------------------------------------
     def __str__(self):
-        return "TMM:\n  nexp: {}\n  nimp: {}".format(self.nexp, self.nimp)
-        
+
+        if not self.use_tmm:
+            return "none"
+
+        text = ""
+        text = text + "path: {}\n".format(self.path)
+
+        text = text + "explicit:\n"
+        if self.use_explicit:
+            # Name, Count, File
+            text = text + "  {:16} {:5} {:16}\n".format("name", "count", "file")
+            explicit = self.explicit
+
+            name = str(explicit[0])
+            count = int(explicit[1])
+            file = str(explicit[2])
+            text = text + "  {:16.16} {:>5d} {:16.16}\n".format(name, count, file)
+
+        else:
+            text = text + "  none\n"
+
+        text = text + "implicit:\n"
+        if self.use_implicit:
+            # Name, Count, File
+            text = text + "  {:16} {:5} {:16}\n".format("name", "count", "file")
+            implicit = self.implicit
+
+            name = str(implicit[0])
+            count = int(implicit[1])
+            file = str(implicit[2])
+            text = text + "  {:16.16} {:>5d} {:16.16}\n".format(name, count, file)
+
+        else:
+            text = text + "  none\n"
+
+        text = text.rstrip()
+
+        return text
+
 
 

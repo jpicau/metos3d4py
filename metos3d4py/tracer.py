@@ -57,7 +57,7 @@ class Tracer:
         # global and local vector length
         nv = m3d.grid.nv
         nvloc = m3d.load.nvloc
-                
+        
         self.ny = ny = len(tracer)
         self.y0 = util.create_petsc_vectors(ny, (nvloc, nv))
 

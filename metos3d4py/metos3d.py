@@ -101,16 +101,9 @@ class Metos3D:
         self.load = Load(self)
         self.tracer = Tracer(self)
         self.bgc = BGC(self)
-
-#tmm, time, solver = \
-#            TMM(), Time(), Solver()
-
-#        tracer.init(self)
-#        bgc.init(self)
-#        tmm.init(self)
-#        time.init(self)
-#        solver.init(self)
-
+        self.tmm = TMM(self)
+        self.time = Time(self)
+        self.solver = Solver(self)
 
 # ----------------------------------------------------------------------------------------
     def run(self):
@@ -137,7 +130,9 @@ class Metos3D:
         """
         
         self.tracer.set(self)
-        
+#        self.bgc.set(self)
+#        self.tmm.set(self)
+
 #        self.solver.solve(self)
 
         self.tracer.save(self)

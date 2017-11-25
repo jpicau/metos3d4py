@@ -41,14 +41,14 @@ class BGC:
 # ----------------------------------------------------------------------------------------
     def __str__(self):
         
-        if not self.usebgc:
+        if not self.use_bgc:
             return "none"
                 
         text = ""
         text = text + "name: {}\n".format(self.name)
 
         text = text + "parameter:\n"
-        if self.useparam:
+        if self.use_param:
             text = text + "  {:<3} {:16} {:16} {:16} {:16}\n".format("no", "name", "value", "unit", "description")
             parameter = self.parameter
             nu = self.nu
@@ -62,7 +62,7 @@ class BGC:
             text = text + "  none\n"
 
         text = text + "boundary data:\n"
-        if self.useboundary:
+        if self.use_boundary:
             text = text + "path: {}\n".format(self.boundary_path)
             text = text + "  {:<3} {:16} {:5} {:24} {:16} {:16}\n".format("no", "name", "count", "description", "unit", "file")
             boundary = self.boundary
@@ -78,7 +78,7 @@ class BGC:
             text = text + "  none\n"
 
         text = text + "domain data:\n"
-        if self.usedomain:
+        if self.use_domain:
             text = text + "path: {}\n".format(self.domain_path)
             text = text + "  {:<3} {:16} {:5} {:24} {:16} {:16}\n".format("no", "name", "count", "description", "unit", "file")
             domain = self.domain
@@ -102,9 +102,9 @@ class BGC:
         
         self.config = config = m3d.config.get("BGC")
         if config is None:
-            self.usebgc = False
+            self.use_bgc = False
         else:
-            self.usebgc = True
+            self.use_bgc = True
             self.name = util.get_key(m3d, self, config, "Name", str)
             
             self.init_parameter(m3d)
@@ -119,10 +119,10 @@ class BGC:
 
         config = self.config.get("Parameter")
         if config is None:
-            self.useparam = False
+            self.use_param = False
             return
         else:
-            self.useparam = True
+            self.use_param = True
             
         self.parameter = parameter = util.get_key(m3d, self, config, "Name, Value, Unit, Description", list)
 
@@ -138,10 +138,10 @@ class BGC:
         
         config = self.config.get("Boundary data")
         if config is None:
-            self.useboundary = False
+            self.use_boundary = False
             return
         else:
-            self.useboundary = True
+            self.use_boundary = True
             
         self.boundary = boundary = util.get_key(m3d, self, config, "Name, Count, Description, Unit, File", list)
         self.boundary_path = util.get_key(m3d, self, config, "Path", str)
@@ -168,10 +168,10 @@ class BGC:
 
         config = self.config.get("Domain data")
         if config is None:
-            self.usedomain = False
+            self.use_domain = False
             return
         else:
-            self.usedomain = True
+            self.use_domain = True
 
         self.domain = domain = util.get_key(m3d, self, config, "Name, Count, Description, Unit, File", list)
         self.domain_path = util.get_key(m3d, self, config, "Path", str)
