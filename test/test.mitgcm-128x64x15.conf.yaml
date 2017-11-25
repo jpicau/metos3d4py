@@ -27,18 +27,19 @@
 #   ice fraction, wind, boundary data
 #
 
-Debug:          3
+Debug:          1
 
 Grid:           mitgcm-128x64x15/grid.nc
 
 Tracer:
-   Name, Value, Unit, Description:
-       - [N,   2.14,   mmol P m-3, phosphate]
-       - [DOP, 1.e-4,  mmol P m-3, dissolved organic phosphorous]
-       - [so4(h20),   1.e-12,   mmol S m-3, hydrated silicate]
-       - [total bekloppter tracer name,   3.4566543333232333232323,   auch total beklaoppt, eine ungalublich lange beschreibung]
+    Name, Value, Unit, Description:
+#        - [salt,   2.14,   mmol P m-3, phosphate]
+        - [N,   2.14,   mmol P m-3, phosphate]
+#        - [DOP, 1.e-4,  mmol P m-3, dissolved organic phosphorous]
+#        - [so4(h20),   1.e-12,   mmol S m-3, hydrated silicate]
+#        - [total bekloppter tracer name,   3.4566543333232333232323,   auch total beklaoppt, eine ungalublich lange beschreibung]
 #    Input:      test/N.nc
-   Output:     test/N.nc
+    Output:     test/N.nc
 
 Solver:
     Type:       Spinup
@@ -63,13 +64,13 @@ BGC:
         Path:   mitgcm-128x64x15/
         Name, Count, Description, Unit, File:
             - [fice, 12, ice cover fraction, 1,      fice.nc]
-            - [wind, 12, wind speed at 10m,  m s-1,  wind.nc]
-            - [dust, 12, dust deposition,    kg m-2, dust.nc]
-    Domain data:
-        Path:   mitgcm-128x64x15/
-        Name, Count, Description, Unit, File:
-            - [salt, 12, salinity,       psu,            salt.nc]
-            - [temp, 12, temperature,    degree celcius, temp.nc]
+#            - [wind, 12, wind speed at 10m,  m s-1,  wind.nc]
+#            - [dust, 12, dust deposition,    kg m-2, dust.nc]
+#    Domain data:
+#        Path:   mitgcm-128x64x15/
+#        Name, Count, Description, Unit, File:
+#            - [salt, 12, salinity,       psu,            salt.nc]
+#            - [temp, 12, temperature,    degree celcius, temp.nc]
 
 TMM:
 #    Path:       mitgcm-15x64x128-360d-3h/

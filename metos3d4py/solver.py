@@ -49,16 +49,16 @@ class Solver:
 ##    def solve_empty(self, m3d):
 ##        util.debug(m3d, self, "Testing empty solver. Just returns.")
 ##        return
-#
-## ----------------------------------------------------------------------------------------
-#    def solve(self, m3d):
+
+# ----------------------------------------------------------------------------------------
+    def solve(self, m3d):
 #        comm = m3d.comm
 #        time = m3d.time
-#        util.debug(m3d, self, "Solve ...")
-#
+        util.debug(m3d, self, "Solve ...", level=1)
+
 #        nl = self.nl
 #        yl = self.yl
-##        for i in range(nl):
+#        for i in range(nl):
 
 # ----------------------------------------------------------------------------------------
     def __str__(self):

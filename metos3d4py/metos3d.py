@@ -94,6 +94,7 @@ class Metos3D:
 
         # debug level
         self.debug = util.get_key(self, self, self.config, "Debug", int)
+        util.debug(self, self, "--- init " + 100*"-", level=1)
         util.debug(self, self, self, level=1)
 
         # init
@@ -128,16 +129,18 @@ class Metos3D:
             yjp1 = [yjp11, ..., yjp1ny]
             
         """
-        
+        util.debug(self, self, "--- set " + 100*"-", level=1)
         self.tracer.set(self)
-#        self.bgc.set(self)
-#        self.tmm.set(self)
+        self.bgc.set(self)
+        self.tmm.set(self)
 
-#        self.solver.solve(self)
+        util.debug(self, self, "--- solve " + 100*"-", level=1)
+        self.solver.solve(self)
 
+        util.debug(self, self, "--- save " + 100*"-", level=1)
         self.tracer.save(self)
 
-        pass
+#        pass
         # compute solution
 #        self.solver.solve(self)
 

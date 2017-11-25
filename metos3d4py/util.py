@@ -36,6 +36,20 @@ def error(m3d, msg):
             print("### ERROR ### {}".format(msg_line))
             sys.stdout.flush()
 
+## ----------------------------------------------------------------------------------------
+#def debug_oneline(m3d, obj, msg, level=0):
+#    if m3d.debug >= level:
+#        # get string from every process first
+#        msgstr = str(msg)
+#        if m3d.rank == 0:
+#
+#            objname = obj.__class__.__name__
+#            funcname = str(sys._getframe().f_back.f_code.co_name)
+#
+#            line = "{:>10}".format(objname + ":") + msgstr
+#            print(line)
+#            sys.stdout.flush()
+
 # ----------------------------------------------------------------------------------------
 def debug(m3d, obj, msg, level=0):
     if m3d.debug >= level:
@@ -49,10 +63,10 @@ def debug(m3d, obj, msg, level=0):
             lines = msgstr.split("\n")
             firstline = "{:>10}".format(objname + ":")
             prefix = "{:<10}".format(" ")
-            
+
             print(firstline)
             for line in lines:
-                print(prefix + line)
+                print("{:100.100}".format(prefix + line))
             sys.stdout.flush()
 
 # ----------------------------------------------------------------------------------------
@@ -120,43 +134,42 @@ def create_petsc_vectors(ny, sizes):
         vv.append(v)
     return vv
 
-## ----------------------------------------------------------------------------------------
-#def set_vector_from_hdf5_file(m3d, v, file, varname, index):
-#
-#    comm = m3d.comm
-#    grid = m3d.grid
-#    mask3d = grid.mask3d
-#    mask2d = grid.mask2d
-#    nc2tmm = grid.nc2tmm
-#
-#    try:
-#        var = file[varname]
-#    except Exception as e:
-#        error(comm, "Cannot retrieve variable: {}".format(varname))
-#        error(comm, e)
-#        sys.exit(1)
-#
-#    start, end = v.getOwnershipRange()
-#
-#    if index is not None:
-#        # C order, slowest dim left
-#        if len(var.shape) == 3:
-#            # mask2d
-#            v[start:end] = var[index,...][mask2d][start:end]
-#        elif len(var.shape) == 4:
-#            # mask3d
-#            v[start:end] = var[index,...][mask3d][nc2tmm][start:end]
-#        else:
-#            error(comm, "Variable: '{}' required to be 2D or 3D. Shape is: {} With index: {}".format(varname, var.shape, index))
-#            sys.exit(1)
-#    else:
-#        if len(var.shape) == 2:
-#            v[start:end] = var[...][mask2d][start:end]
-#        elif len(var.shape) == 3:
-#            v[start:end] = var[...][mask3d][nc2tmm][start:end]
-#        else:
-#            error(comm, "Variable: '{}' required to be 2D or 3D. Shape is: {} ".format(varname, var.shape))
-#            sys.exit(1)
+# ----------------------------------------------------------------------------------------
+def set_vector_from_hdf5_file(m3d, v, file, varname, index=None):
+
+    try:
+        var = file[varname]
+    except Exception as e:
+        error(m3d, "Cannot retrieve variable: {}".format(varname))
+        error(m3d, e)
+        sys.exit(1)
+
+    grid = m3d.grid
+    mask3d = grid.mask3d
+    mask2d = grid.mask2d
+    nc2tmm = grid.nc2tmm
+
+    start, end = v.getOwnershipRange()
+
+    if index is not None:
+        # C order, slowest dim left
+        if len(var.shape) == 3:
+            # mask2d
+            v[start:end] = var[index,...][mask2d][start:end]
+        elif len(var.shape) == 4:
+            # mask3d
+            v[start:end] = var[index,...][mask3d][nc2tmm][start:end]
+        else:
+            error(m3d, "Variable: '{}' required to be 2D or 3D. Shape is: {} With index: {}".format(varname, var.shape, index))
+            sys.exit(1)
+    else:
+        if len(var.shape) == 2:
+            v[start:end] = var[...][mask2d][start:end]
+        elif len(var.shape) == 3:
+            v[start:end] = var[...][mask3d][nc2tmm][start:end]
+        else:
+            error(m3d, "Variable: '{}' required to be 2D or 3D. Shape is: {} ".format(varname, var.shape))
+            sys.exit(1)
 
 # ----------------------------------------------------------------------------------------
 def get_config_from_yaml_file(m3d, argv):

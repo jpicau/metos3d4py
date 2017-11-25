@@ -79,7 +79,7 @@ class TMM:
         self.nimp = implicit[1]
 
 # ----------------------------------------------------------------------------------------
-    def set(self):
+    def set(self, m3d):
         util.debug(m3d, self, "TMM set ...", level=1)
 
 #        self.nexp = nexp = exp_list[1]

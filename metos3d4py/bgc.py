@@ -194,8 +194,45 @@ class BGC:
         self.d = d
 
 # ----------------------------------------------------------------------------------------
-    def set(self):
-        util.debug(m3d, self, "BGC set ...", level=1)
+    def set(self, m3d):
+
+        text = ""
+        if self.use_boundary:
+            nb = self.nb
+            nbi = self.nbi
+            b = self.b
+            boundary = self.boundary
+            path = self.boundary_path
+            text = text + "boundary:\n"
+            text = text + "  {:10.10} {}\n".format("name", "file")
+            for i in range(nb):
+                # Name, Count, Description, Unit, File
+                varname = boundary[i][0]
+                filename = boundary[i][4]
+                file = util.get_hdf5_file(m3d, self, path + filename)
+                text = text + "  {:10.10} {}\n".format(varname, path + filename)
+                for j in range(nbi[i]):
+                    util.set_vector_from_hdf5_file(m3d, b[i][j], file, varname, index=j)
+
+        if self.use_domain:
+            nd = self.nd
+            ndi = self.ndi
+            d = self.d
+            domain = self.domain
+            path = self.domain_path
+            text = text + "domain:\n"
+            text = text + "  {:10.10} {}\n".format("name", "file")
+            for i in range(nd):
+                # Name, Count, Description, Unit, File
+                varname = domain[i][0]
+                filename = domain[i][4]
+                file = util.get_hdf5_file(m3d, self, path + filename)
+                text = text + "  {:10.10} {}\n".format(varname, path + filename)
+                for j in range(ndi[i]):
+                    util.set_vector_from_hdf5_file(m3d, d[i][j], file, varname, index=j)
+        
+        text = text.rstrip()
+        util.debug(m3d, self, text, level=1)
 
 # ----------------------------------------------------------------------------------------
     def bgc(self, m3d, dt, qj, tj, yj, u, bj, dj):

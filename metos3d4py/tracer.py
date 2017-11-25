@@ -66,34 +66,33 @@ class Tracer:
 
 # ----------------------------------------------------------------------------------------
     def set(self, m3d):
-        util.debug(m3d, self, "Tracer: set {}".format(""), level=1)
 
-#        if input is not None:
-#            util.debug(m3d, self, "Init file: {}".format(input), level=1)
-#            tracerfile = util.get_hdf5_file(m3d, self, input)
-#        else:
-#            values = [t[1] for t in tracer]
-#            util.debug(m3d, self, "Init values: {}".format(values), level=1)
+        ny = self.ny
+        y0 = self.y0
+        tracer = self.tracer
+        input = self.input
 
-#            if input is not None:
-#                tracername = tracer[i][0]
-#                util.set_vector_from_hdf5_file(m3d, y, tracerfile, tracername, None)
-#            else:
-#                tracervalue = tracer[i][1]
-#                y.set(tracervalue)
+        text = ""
+        if input is not None:
+            file = util.get_hdf5_file(m3d, self, input)
+            text = text + "input file: {}\n".format(file.filename)
+        else:
+            values = [t[1] for t in tracer]
+            text = text + "init values:\n"
+            text = text + "  {:10} {}\n".format("name", "value")
 
-#        print(self.y0)
+        for i in range(ny):
+            # Name, Value, Unit, Description
+            name = str(tracer[i][0])
+            value = float(tracer[i][1])
+            if input is not None:
+                util.set_vector_from_hdf5_file(m3d, y0[i], file, name)
+            else:
+                y0[i].set(value)
+                text = text + "  {:10.10} {:<16e}\n".format(name, value)
 
-#        y0 = util.create_vectors(ny, (nvloc, nv))
-#        for i in range(ny):
-#            y = PETSc.Vec()
-#            y.create()
-#            y.setType(PETSc.Vec.Type.STANDARD)
-#            y.setSizes((nvloc, nv))
-#
-#
-#            y.assemble()
-#            y0.append(y)
+        text = text.rstrip()
+        util.debug(m3d, self, text, level=1)
 
 # ----------------------------------------------------------------------------------------
     def save(self, m3d):
