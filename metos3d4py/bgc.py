@@ -234,15 +234,17 @@ class BGC:
         text = text.rstrip()
         util.debug(m3d, self, text, level=1)
 
-# ----------------------------------------------------------------------------------------
-    def bgc(self, m3d, dt, qj, tj, yj, u, bj, dj):
-        comm = m3d.comm
-        conf_bgc = m3d.conf["BGC"]
-        
-        name = conf_bgc["Name"]
-        util._print(comm, "BGC model: {}".format(name))
-    
+## ----------------------------------------------------------------------------------------
+#    def bgc(self, m3d, dt, qj, tj, yj, u, bj, dj):
+#        comm = m3d.comm
+#        conf_bgc = m3d.conf["BGC"]
+#
+#        name = conf_bgc["Name"]
+#        util._print(comm, "BGC model: {}".format(name))
 
+# ----------------------------------------------------------------------------------------
+    def evaluate(self, m3d, dt, qj, tj, yj, u, bj, dj):
+        pass
 
 
 

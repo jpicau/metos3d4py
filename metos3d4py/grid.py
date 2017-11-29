@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from h5py import Dataset
 from metos3d4py import util
 
 # ----------------------------------------------------------------------------------------
@@ -42,7 +43,7 @@ class Grid:
         # get 'grid_mask' variable from file
         filepath = util.get_key(m3d, self, m3d.config, "Grid", str)
         gridfile = util.get_hdf5_file(m3d, self, filepath)
-        grid = gridfile["grid_mask"]
+        grid = util.get_key(m3d, self, gridfile, "grid_mask", Dataset) #gridfile["grid_mask"]
 
         # masks
         self.mask3d = mask3d = (grid[...] != grid.fillvalue)

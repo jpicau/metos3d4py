@@ -75,10 +75,10 @@ class Tracer:
         text = ""
         if input is not None:
             file = util.get_hdf5_file(m3d, self, input)
-            text = text + "input file: {}\n".format(file.filename)
+            text = text + "set from input file:\n  {}\n".format(file.filename)
         else:
             values = [t[1] for t in tracer]
-            text = text + "init values:\n"
+            text = text + "set from init values:\n"
             text = text + "  {:10} {}\n".format("name", "value")
 
         for i in range(ny):

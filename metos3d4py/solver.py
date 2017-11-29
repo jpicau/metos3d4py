@@ -39,7 +39,9 @@ class Solver:
         self.nl = util.get_key(m3d, self, config, "Count", int)
         self.mon = util.get_key(m3d, self, config, "Monitor", bool)
 
-#        self.yl = []
+        self.yl = []
+        for y in m3d.tracer.y0:
+            self.yl.append(y.duplicate())
 
         # debug
         util.debug(m3d, self, self, level=1)
@@ -52,13 +54,23 @@ class Solver:
 
 # ----------------------------------------------------------------------------------------
     def solve(self, m3d):
-#        comm = m3d.comm
-#        time = m3d.time
         util.debug(m3d, self, "Solve ...", level=1)
 
-#        nl = self.nl
-#        yl = self.yl
-#        for i in range(nl):
+        tracer = m3d.tracer
+        time = m3d.time
+
+        ny = tracer.ny
+        y0 = tracer.y0
+        
+        nl = self.nl
+        yl = self.yl
+        
+        for i in range(ny):
+            yl[i] = y0[i]
+        
+        for i in range(nl):
+            util.debug(m3d, self, "{}".format(i), level=1)
+            time.step(m3d, yl)
 
 # ----------------------------------------------------------------------------------------
     def __str__(self):

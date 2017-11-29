@@ -46,15 +46,104 @@ class Time:
         self.nt = util.get_key(m3d, self, config, "Count", int)
         self.dt = util.get_key(m3d, self, config, "Step", float)
 
-#        self.bj = bj
-#        self.dj = dj
-#        self.yj = yj
+        tracer = m3d.tracer
+        ny = tracer.ny
+        y0 = tracer.y0
+        
+        bgc = m3d.bgc
+        b = bgc.b
+        nb = bgc.nb
+        nbi = bgc.nbi
+        bj = []
+        for bi in b:
+            bj.append(bi[0].duplicate())
+        self.bj = bj
+        
+        d = bgc.d
+        nd = bgc.nd
+        ndi = bgc.ndi
+        dj = []
+        for di in d:
+            dj.append(di[0].duplicate())
+        self.dj = dj
+
+        yj = []
+        qj = []
+        for yi in y0:
+            yj.append(yi.duplicate())
+            qj.append(yi.duplicate())
+        self.yj = yj
+        self.qj = qj
 #        self.yexpj = yexpj
-#        self.qj = qj
 
         # debug
         util.debug(m3d, self, self, level=1)
 
+# ----------------------------------------------------------------------------------------
+    def step(self, m3d, yl):
+        util.debug(m3d, self, "time step ...", level=1)
+
+        tracer = m3d.tracer
+        ny = tracer.ny
+        y0 = tracer.y0
+
+        bgc = m3d.bgc
+        u = bgc.u
+        
+        tmm = m3d.tmm
+        
+        t0 = self.t0
+        dt = self.dt
+        nt = self.nt
+        yj = self.yj
+        qj = self.qj
+        bj = self.bj
+        dj = self.dj
+
+        for i in range(ny):
+            yj[i] = yl[i]
+
+        for j in range(nt):
+            util.debug(m3d, self, "{}".format(i), level=1)
+            tj = t0 + j*dt
+
+            if bgc.use_bgc:
+                util.debug(m3d, self, "use_bgc", level=1)
+                
+                if bgc.use_boundary:
+                    b = bgc.b
+                    nb = bgc.nb
+                    nbi = bgc.nbi
+                    # interpolate
+                    for ib in range(nb):
+                        alpha, ialpha, beta, ibeta = util.interpolate(nbi[ib], tj)
+                        bj[ib] = alpha * b[ib][ialpha] + beta * b[ib][ibeta]
+            
+                if bgc.use_domain:
+                    d = bgc.d
+                    nd = bgc.nd
+                    ndi = bgc.ndi
+                    # interpolate
+                    for id in range(nd):
+                        alpha, ialpha, beta, ibeta = util.interpolate(ndi[id], tj)
+                        dj[id] = alpha * d[id][ialpha] + beta * d[id][ibeta]
+
+                m3d.bgc.evaluate(m3d, dt, qj, tj, yj, u, bj, dj)
+
+            if tmm.use_tmm:
+                util.debug(m3d, self, "use_tmm", level=1)
+                
+                if tmm.use_explicit:
+                    # interpolate
+                    
+                    # apply explicit
+                    m3d.tmm.apply_explicit(m3d, tj, yj, qj)
+                
+                if tmm.use_implicit:
+                    # interpolate
+                    
+                    # apply implicit
+                    m3d.tmm.apply_implicit(m3d, tj, yj, qj)
 
 
 

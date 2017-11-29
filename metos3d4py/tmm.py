@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import sys
 import numpy
 from petsc4py import PETSc
 from metos3d4py import util
@@ -61,10 +62,7 @@ class TMM:
             return
         else:
             self.use_explicit = True
-
-        # Name, Count, File
-        self.nexp = explicit[1]
-
+        
 # ----------------------------------------------------------------------------------------
     def init_implicit(self, m3d):
 
@@ -75,28 +73,99 @@ class TMM:
         else:
             self.use_implicit = True
 
-        # Name, Count, File
-        self.nimp = implicit[1]
-
 # ----------------------------------------------------------------------------------------
     def set(self, m3d):
-        util.debug(m3d, self, "TMM set ...", level=1)
+        
+        if not self.use_tmm:
+            util.debug(m3d, self, "none", level=1)
+            return
+        else:
+            nv = m3d.grid.nv
+            nvloc = m3d.load.nvloc
 
-#        self.nexp = nexp = exp_list[1]
-#        self.Aexp = exp_list[2]
-#        # !!! read in !!!
-#        # !!! read in !!!
-#        for i in range(nexp):
-#            pass
-#        # Aexpj
-#
-#        self.nimp = nimp = imp_list[1]
-#        self.Aimp = imp_list[2]
-#        # !!! read in !!!
-#        # !!! read in !!!
-#        for i in range(nimp):
-#            pass
-#        # Aimpj
+            # explicit
+            if self.use_explicit:
+                util.debug(m3d, self, "explicit ...", level=1)
+                self.Aexp = []
+                
+                # Name, Count, File
+                nexp  = self.explicit[1]
+                filepath = self.path + self.explicit[2]
+                
+                # we assume petsc mat aij format in a hdf5 file
+                f = util.get_hdf5_file(m3d, self, filepath)
+                nrow = f["nrow"].size
+                ncol = f["ncol"].size
+                nnz = f["nnz"].size
+                nnzrow = f["nnzrow"]
+                
+                # however, we use index pointers for the petsc call
+                indptr = numpy.append(0, numpy.cumsum(nnzrow)).astype("i4")
+                colidx = f["colidx"]
+                if not nv == nrow == ncol:
+                    util.error(m3d, "Dimensions of explicit matrix: {} do not match vector length: {}".format((nrow, ncol), nv))
+                    sys.exit(1)
+                
+                for i in range(nexp):
+                    aij = f["aij"][i,...]
+                    A = PETSc.Mat()
+                    A.create()
+                    A.setType("aij")                            # PETSc.Mat.Type.AIJ,
+                    A.setSizes(((nvloc, nv), (nvloc, nv)))
+                    A.setUp()
+                    
+                    start, end = A.owner_range
+                    A.setPreallocationNNZ(nnzrow[start:end])
+                    A.setValuesCSR(
+                                   indptr[start:end+1]-indptr[start],
+                                   colidx[indptr[start]:indptr[end]],
+                                   aij[indptr[start]:indptr[end]])
+
+                    A.assemble()
+                    
+                    self.Aexp.append(A)
+
+            # implcit
+            if self.use_implicit:
+                util.debug(m3d, self, "implicit ...", level=1)
+                self.Aimp = []
+                
+                self.nimp = self.implicit[1]
+                filepath = self.path + self.implicit[2]
+
+                # we assume petsc mat aij format in a hdf5 file
+                f = util.get_hdf5_file(m3d, self, filepath)
+                nrow = f["nrow"].size
+                ncol = f["ncol"].size
+                nnz = f["nnz"].size
+                nnzrow = f["nnzrow"]
+
+                # however, we use index pointers for the petsc call
+                indptr = numpy.append(0, numpy.cumsum(nnzrow)).astype("i4")
+                colidx = f["colidx"]
+                if not nv == nrow == ncol:
+                    util.error(m3d, "Dimensions of implicit matrix: {} do not match vector length: {}".format((nrow, ncol), nv))
+                    sys.exit(1)
+
+                for i in range(nexp):
+                    aij = f["aij"][i,...]
+                    A = PETSc.Mat()
+                    A.create()
+                    A.setType("aij")                            # PETSc.Mat.Type.AIJ,
+                    A.setSizes(((nvloc, nv), (nvloc, nv)))
+                    A.setUp()
+                            
+                    start, end = A.owner_range
+                    A.setPreallocationNNZ(nnzrow[start:end])
+                    A.setValuesCSR(
+                                   indptr[start:end+1]-indptr[start],
+                                   colidx[indptr[start]:indptr[end]],
+                                   aij[indptr[start]:indptr[end]])
+                                    
+                    A.assemble()
+                    
+                    self.Aimp.append(A)
+
 
 # ----------------------------------------------------------------------------------------
     def __str__(self):
@@ -141,3 +210,87 @@ class TMM:
 
 
 
+
+
+
+
+#            nv = m3d.grid.nv.astype("i4")
+#            nvloc = m3d.load.nvloc.astype("i4")
+#            nvprev = m3d.load.nvprev
+#            nv = m3d.grid.nv.astype(PETSc.IntType)
+#            nvloc = m3d.load.nvloc.astype(PETSc.IntType)
+#                nrow = f["nrow"].size.astype("i4")
+#                ncol = f["ncol"].size.astype("i4")
+#                nnz = f["nnz"].size.astype("i4")
+#                nrow = f["nrow"].size.astype(PETSc.IntType)
+#                ncol = f["ncol"].size.astype(PETSc.IntType)
+#                nnz = f["nnz"].size.astype(PETSc.IntType)
+
+#                print(nrow.dtype)
+#                print(ncol.dtype)
+#                print(nnz.dtype)
+
+#                nnzrow = f["nnzrow"][...].astype(PETSc.IntType)
+#                nnzrow = f["nnzrow"]
+#                rows = numpy.repeat(numpy.arange(nrow), nnzrow)
+#                print(rows)
+#                print(rows.shape)
+#                print(nnzrow.dtype)
+#                indptr = numpy.append(0, numpy.cumsum(nnzrow)).astype(PETSc.IntType)
+#                colidx = f["colidx"][...].astype(PETSc.IntType)
+#                indptr = numpy.append(0, numpy.cumsum(nnzrow))
+#                colidx = f["colidx"][...].astype("i4")
+#                print(colidx.dtype)
+
+#                    aij = f["aij"][i,...].astype(PETSc.ScalarType)
+#        #for ie in nexp:
+
+#        self.nexp = nexp = exp_list[1]
+#        self.Aexp = exp_list[2]
+#        # !!! read in !!!
+#        # !!! read in !!!
+#        for i in range(nexp):
+#            pass
+#        # Aexpj
+#
+#        self.nimp = nimp = imp_list[1]
+#        self.Aimp = imp_list[2]
+#        # !!! read in !!!
+#        # !!! read in !!!
+#        for i in range(nimp):
+#            pass
+#        # Aimpj
+
+#                    A.setPreallocationNNZ(nnzrow)
+
+##                    A.setSizes(((2, 4), (2, 4)))
+#                    A.setSizes(4)
+#                    A.setPreallocationNNZ(4)
+
+#                    for j in range(start, end):
+###                    for j in range(start, start+100):
+##                        print(j)
+##                        print(indptr[j])
+##                        print(indptr[j+1])
+##                        print(colidx[indptr[j]:indptr[j+1]])
+#                        A.setValues(j, colidx[indptr[j]:indptr[j+1]], aij[indptr[j]:indptr[j+1]])
+##                        A.setValuesLocal(j, colidx[indptr[j]:indptr[j+1]], aij[indptr[j]:indptr[j+1]])
+
+#                    A.setValue(0, 0, 1.)
+#                    A.setValues([0,1], [0,1], [1.,2.,3.,4])
+#                    A.setValuesCSR([0,2,4,4,4], [0,1,0,1], [1.,2.,3.,4.])
+#                    A.setValuesCSR(indptr, colidx, aij)
+
+#                    print(len(indptr[start:end+1]))
+#                    print(len(colidx[indptr[start]:indptr[end]]))
+#                    print(len(aij[indptr[start]:indptr[end]]))
+#                    print(len(indptr[start:end+1]))
+#                    sys.stdout.flush()
+
+#                    viewer = PETSc.Viewer().createBinary('matrix-A.dat', 'w')
+#                    viewer(A)
+#                    A.setValuesIJV(indptr, colidx, aij)
+
+#                    A.view()
+#                    print(A.sizes)
+#                    sys.exit(1)

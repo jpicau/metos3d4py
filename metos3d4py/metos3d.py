@@ -28,6 +28,9 @@
         yaml        option format, compact, human readable and writable
 """
 
+import sys, petsc4py
+petsc4py.init(sys.argv)
+
 from petsc4py import PETSc
 
 from metos3d4py.version     import VERSION

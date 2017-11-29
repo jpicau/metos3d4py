@@ -36,20 +36,6 @@ def error(m3d, msg):
             print("### ERROR ### {}".format(msg_line))
             sys.stdout.flush()
 
-## ----------------------------------------------------------------------------------------
-#def debug_oneline(m3d, obj, msg, level=0):
-#    if m3d.debug >= level:
-#        # get string from every process first
-#        msgstr = str(msg)
-#        if m3d.rank == 0:
-#
-#            objname = obj.__class__.__name__
-#            funcname = str(sys._getframe().f_back.f_code.co_name)
-#
-#            line = "{:>10}".format(objname + ":") + msgstr
-#            print(line)
-#            sys.stdout.flush()
-
 # ----------------------------------------------------------------------------------------
 def debug(m3d, obj, msg, level=0):
     if m3d.debug >= level:
@@ -88,7 +74,7 @@ def get_key(m3d, obj, dict, key, valuetype):
             usage(m3d)
             sys.exit(1)
     except Exception as e:
-        error(m3d, "{} Cannot retrieve '{}' key from configuration.".format(objstr, key))
+        error(m3d, "{} Cannot retrieve '{}' key from '{}'.".format(objstr, key, type(dict)))
         usage(m3d)
         sys.exit(1)
 
@@ -176,10 +162,8 @@ def get_config_from_yaml_file(m3d, argv):
     """
         parameters:
             argv        # command line arguments
-        
         the first command line argument is always the name of the current executable,
         expect the file path as second argument,
-
         return:
             config      # configuration, dictionary where the parsed YAML contents is stored
     """
