@@ -188,25 +188,25 @@ def get_config_from_yaml_file(m3d, argv):
         usage(m3d)
         sys.exit(0)
 
-## ----------------------------------------------------------------------------------------
-#def interp(n, t):
-#    '''
-#        compute the interpolation coefficients and indices on the fly
-#
-#        n:  number of intervals [0,1] is devided into
-#        t:  point in time (in [0,1])
-#
-#        alpha, ialpha, beta, ibeta
-#
-#        '''
-#
-#    w = t * n + 0.5
-#    beta = math.fmod(w, 1.0)
-#    alpha = (1.0 - beta)
-#    ibeta = int(math.fmod(math.floor(w), n))
-#    ialpha = int(math.fmod(math.floor(w) + n - 1, n))
-#
-#    return alpha, ialpha, beta, ibeta
+# ----------------------------------------------------------------------------------------
+def interpolate(n, t):
+    '''
+        compute the interpolation coefficients and indices on the fly
+
+        n:  number of intervals [0,1] is devided into
+        t:  point in time (in [0,1])
+
+        alpha, ialpha, beta, ibeta
+
+        '''
+
+    w = t * n + 0.5
+    beta = math.fmod(w, 1.0)
+    alpha = (1.0 - beta)
+    ibeta = int(math.fmod(math.floor(w), n))
+    ialpha = int(math.fmod(math.floor(w) + n - 1, n))
+
+    return alpha, ialpha, beta, ibeta
 
 
 
