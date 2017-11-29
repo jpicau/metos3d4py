@@ -65,9 +65,19 @@ class Solver:
         nl = self.nl
         yl = self.yl
         
-        for i in range(ny):
-            yl[i] = y0[i]
-        
+        i = 0
+#        print("rank: {}, i: {}, y[i]: {}, y0[i]: {}".format(m3d.rank, i, yl[i], y0[i]))
+        util.copy_vector_list(y0, yl)
+#        print("rank: {}, i: {}, y[i]: {}, y0[i]: {}".format(m3d.rank, i, yl[i], y0[i]))
+#        for i in range(ny):
+#            print("rank: {}, i: {}, y[i]: {}, y0[i]: {}".format(m3d.rank, i, yl[i], y0[i]))
+##            yl[i] = y0[i]
+#            y0[i].copy(yl[i])
+##            yl[i].copy(y0[i])
+#            print("rank: {}, i: {}, y[i]: {}, y0[i]: {}".format(m3d.rank, i, yl[i], y0[i]))
+#        import sys
+#        sys.exit(1)
+
         for i in range(nl):
             util.debug(m3d, self, "{}".format(i), level=1)
             time.step(m3d, yl)

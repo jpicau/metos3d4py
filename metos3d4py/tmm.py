@@ -84,12 +84,13 @@ class TMM:
             nvloc = m3d.load.nvloc
 
             # explicit
+            self.nexp = 0
+            self.Aexp = []
             if self.use_explicit:
                 util.debug(m3d, self, "explicit ...", level=1)
-                self.Aexp = []
                 
                 # Name, Count, File
-                nexp  = self.explicit[1]
+                self.nexp = nexp = self.explicit[1]
                 filepath = self.path + self.explicit[2]
                 
                 # we assume petsc mat aij format in a hdf5 file
@@ -98,6 +99,7 @@ class TMM:
                 ncol = f["ncol"].size
                 nnz = f["nnz"].size
                 nnzrow = f["nnzrow"]
+                nnzrow_max = numpy.max(nnzrow)
                 
                 # however, we use index pointers for the petsc call
                 indptr = numpy.append(0, numpy.cumsum(nnzrow)).astype("i4")
@@ -113,24 +115,24 @@ class TMM:
                     A.setType("aij")                            # PETSc.Mat.Type.AIJ,
                     A.setSizes(((nvloc, nv), (nvloc, nv)))
                     A.setUp()
-                    
+
                     start, end = A.owner_range
-                    A.setPreallocationNNZ(nnzrow[start:end])
+                    A.setPreallocationNNZ((nnzrow_max, nnzrow_max))
                     A.setValuesCSR(
                                    indptr[start:end+1]-indptr[start],
                                    colidx[indptr[start]:indptr[end]],
                                    aij[indptr[start]:indptr[end]])
-
                     A.assemble()
                     
                     self.Aexp.append(A)
 
             # implcit
+            self.nimp = 0
+            self.Aimp = []
             if self.use_implicit:
                 util.debug(m3d, self, "implicit ...", level=1)
-                self.Aimp = []
                 
-                self.nimp = self.implicit[1]
+                self.nimp = nimp = self.implicit[1]
                 filepath = self.path + self.implicit[2]
 
                 # we assume petsc mat aij format in a hdf5 file
@@ -139,6 +141,7 @@ class TMM:
                 ncol = f["ncol"].size
                 nnz = f["nnz"].size
                 nnzrow = f["nnzrow"]
+                nnzrow_max = numpy.max(nnzrow)
 
                 # however, we use index pointers for the petsc call
                 indptr = numpy.append(0, numpy.cumsum(nnzrow)).astype("i4")
@@ -147,7 +150,7 @@ class TMM:
                     util.error(m3d, "Dimensions of implicit matrix: {} do not match vector length: {}".format((nrow, ncol), nv))
                     sys.exit(1)
 
-                for i in range(nexp):
+                for i in range(nimp):
                     aij = f["aij"][i,...]
                     A = PETSc.Mat()
                     A.create()
@@ -156,12 +159,11 @@ class TMM:
                     A.setUp()
                             
                     start, end = A.owner_range
-                    A.setPreallocationNNZ(nnzrow[start:end])
+                    A.setPreallocationNNZ((nnzrow_max, nnzrow_max))
                     A.setValuesCSR(
                                    indptr[start:end+1]-indptr[start],
                                    colidx[indptr[start]:indptr[end]],
                                    aij[indptr[start]:indptr[end]])
-                                    
                     A.assemble()
                     
                     self.Aimp.append(A)
@@ -208,7 +210,10 @@ class TMM:
 
         return text
 
-
+## ----------------------------------------------------------------------------------------
+#    def apply(self, m3d, Aj, yj):
+#
+#            m3d.tmm.apply(m3d, Aexpj, yj)
 
 
 

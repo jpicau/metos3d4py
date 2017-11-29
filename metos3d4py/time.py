@@ -68,13 +68,15 @@ class Time:
         self.dj = dj
 
         yj = []
+        yexpj = []
         qj = []
         for yi in y0:
             yj.append(yi.duplicate())
+            yexpj.append(yi.duplicate())
             qj.append(yi.duplicate())
         self.yj = yj
+        self.yexpj = yexpj
         self.qj = qj
-#        self.yexpj = yexpj
 
         # debug
         util.debug(m3d, self, self, level=1)
@@ -97,8 +99,18 @@ class Time:
         nt = self.nt
         yj = self.yj
         qj = self.qj
+        yexpj = self.yexpj
         bj = self.bj
         dj = self.dj
+        
+        if m3d.tmm.use_tmm:
+            if m3d.tmm.use_explicit:
+                self.Aexpj = m3d.tmm.Aexp[0].duplicate()
+            if m3d.tmm.use_implicit:
+                self.Aimpj = m3d.tmm.Aimp[0].duplicate()
+
+        Aexpj = self.Aexpj
+        Aimpj = self.Aimpj
 
         for i in range(ny):
             yj[i] = yl[i]
@@ -111,39 +123,78 @@ class Time:
                 util.debug(m3d, self, "use_bgc", level=1)
                 
                 if bgc.use_boundary:
+                    util.debug(m3d, self, "use_boundary", level=1)
                     b = bgc.b
                     nb = bgc.nb
                     nbi = bgc.nbi
                     # interpolate
                     for ib in range(nb):
                         alpha, ialpha, beta, ibeta = util.interpolate(nbi[ib], tj)
-                        bj[ib] = alpha * b[ib][ialpha] + beta * b[ib][ibeta]
-            
+#                        bj[ib] = alpha * b[ib][ialpha] + beta * b[ib][ibeta]
+                        bj[ib] = b[ib][ialpha]                  # VecCopy
+                        bj[ib] = alpha*bj[ib]                   # VecScale
+                        bj[ib] = bj[ib] + beta*b[ib][ibeta]     # VecAXPY
+
                 if bgc.use_domain:
+                    util.debug(m3d, self, "use_domain", level=1)
                     d = bgc.d
                     nd = bgc.nd
                     ndi = bgc.ndi
                     # interpolate
                     for id in range(nd):
                         alpha, ialpha, beta, ibeta = util.interpolate(ndi[id], tj)
-                        dj[id] = alpha * d[id][ialpha] + beta * d[id][ibeta]
+#                        dj[id] = alpha * d[id][ialpha] + beta * d[id][ibeta]
+                        dj[id] = d[id][ialpha]                  # VecCopy
+                        dj[id] = alpha*dj[id]                   # VecScale
+                        dj[id] = dj[id] + beta*d[id][ibeta]     # VecAXPY
 
-                m3d.bgc.evaluate(m3d, dt, qj, tj, yj, u, bj, dj)
+                m3d.bgc.q(m3d, dt, qj, tj, yj, u, bj, dj)
 
             if tmm.use_tmm:
                 util.debug(m3d, self, "use_tmm", level=1)
                 
                 if tmm.use_explicit:
+                    util.debug(m3d, self, "use_explicit", level=1)
+                    nexp = tmm.nexp
+                    Aexp = tmm.Aexp
                     # interpolate
-                    
+                    alpha, ialpha, beta, ibeta = util.interpolate(nexp, tj)
+#                    Aexpj = alpha * Aexp[ialpha] + beta * Aexp[ibeta]
+                    Aexpj = Aexp[ialpha]                # MatCopy
+                    Aexpj = alpha*Aexpj                 # MatScale
+                    Aexpj = Aexpj + beta*Aexp[ibeta]    # MatAXPY
+
                     # apply explicit
-                    m3d.tmm.apply_explicit(m3d, tj, yj, qj)
-                
+#                    m3d.tmm.apply(m3d, Aexpj, yj)
+                    for i in range(ny):
+                        yexpj[i] = Aexpj*yj[i]
+#            else:
+#                # we need to copy at least one time
+#                yexpj = yj
+
+                #add bgc
+                if bgc.use_bgc:
+                    util.debug(m3d, self, "use_bgc", level=1)
+                    for i in range(ny):
+                        yexpj[i] = yexpj[i] + qj[i]
+#                    yexpj = yexpj + qj
+
                 if tmm.use_implicit:
+                    util.debug(m3d, self, "use_implicit", level=1)
+                    nimp = tmm.nimp
+                    Aimp = tmm.Aimp
                     # interpolate
-                    
+                    alpha, ialpha, beta, ibeta = util.interpolate(nimp, tj)
+#                    Aimpj = alpha * Aimp[ialpha] + beta * Aimp[ibeta]
+                    Aimpj = Aimp[ialpha]                # MatCopy
+                    Aimpj = alpha*Aimpj                 # MatScale
+                    Aimpj = Aimpj + beta*Aimp[ibeta]    # MatAXPY
+
                     # apply implicit
-                    m3d.tmm.apply_implicit(m3d, tj, yj, qj)
+#                    m3d.tmm.apply(m3d, Aimpj, yj)
+#                    yj = Aimpj*yexpj
+                    for i in range(ny):
+                        yj[i] = Aimpj*yj[i]
 
 
 

@@ -212,11 +212,6 @@ class Metos3D:
 #                    alpha, ialpha, beta, ibeta = _interpolate(ndi[id], tj)
 #                    dj[id] = alpha * d[id][ialpha] + beta * d[id][ibeta]
 #
-#                alpha, ialpha, beta, ibeta = _interpolate(nexp, tj)
-#                Aexpj = alpha * Aexp[ialpha] + beta * Aexp[ibeta]
-#
-#                alpha, ialpha, beta, ibeta = _interpolate(nimp, tj)
-#                Aimpj = alpha * Aimpj[ialpha] + beta * Aimpj[ibeta]
 #
 #                # bgc
 #                bgc(self, dt, qj, tj, yj, u, bj, dj)

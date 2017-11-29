@@ -109,18 +109,6 @@ def get_hdf5_file(m3d, obj, filepath):
         sys.exit(1)
 
 # ----------------------------------------------------------------------------------------
-def create_petsc_vectors(ny, sizes):
-    vv = []
-    for i in range(ny):
-        v = PETSc.Vec()
-        v.create()
-        v.setType(PETSc.Vec.Type.STANDARD)
-        v.setSizes(sizes)
-        v.assemble()
-        vv.append(v)
-    return vv
-
-# ----------------------------------------------------------------------------------------
 def set_vector_from_hdf5_file(m3d, v, file, varname, index=None):
 
     try:
@@ -156,6 +144,8 @@ def set_vector_from_hdf5_file(m3d, v, file, varname, index=None):
         else:
             error(m3d, "Variable: '{}' required to be 2D or 3D. Shape is: {} ".format(varname, var.shape))
             sys.exit(1)
+
+    v.assemble()
 
 # ----------------------------------------------------------------------------------------
 def get_config_from_yaml_file(m3d, argv):
@@ -200,6 +190,8 @@ def interpolate(n, t):
 
         '''
 
+#    print("interp: {} {}".format(n,t))
+
     w = t * n + 0.5
     beta = math.fmod(w, 1.0)
     alpha = (1.0 - beta)
@@ -208,6 +200,33 @@ def interpolate(n, t):
 
     return alpha, ialpha, beta, ibeta
 
+
+
+##########################################################################################
+#   create
+##########################################################################################
+def create_petsc_vectors(ny, sizes):
+    vv = []
+#    print("create_petsc_vectors: vv: {}".format(id(vv)))
+    for i in range(ny):
+        v = PETSc.Vec()
+        v.create()
+        v.setType(PETSc.Vec.Type.STANDARD)
+        v.setSizes(sizes)
+        v.assemble()
+#        print("create_petsc_vectors: i: {:2d} id(v): {}, v: {}".format(i, id(v), v))
+        vv.append(v)
+    return vv
+
+##########################################################################################
+#   copy
+##########################################################################################
+def copy_vector_list(yin, yout):
+    nin = len(yin)
+    nout = len(yout)
+    assert(nin==nout)
+    for i in range(nin):
+        yin[i].copy(yout[i])
 
 
 

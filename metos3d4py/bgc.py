@@ -162,6 +162,7 @@ class BGC:
 
         self.nbi = nbi
         self.b = b
+
             
 # ----------------------------------------------------------------------------------------
     def init_domain_data(self, m3d):
@@ -212,6 +213,7 @@ class BGC:
                 file = util.get_hdf5_file(m3d, self, path + filename)
                 text = text + "  {:10.10} {}\n".format(varname, path + filename)
                 for j in range(nbi[i]):
+                    pass
                     util.set_vector_from_hdf5_file(m3d, b[i][j], file, varname, index=j)
 
         if self.use_domain:
@@ -242,9 +244,18 @@ class BGC:
 #        name = conf_bgc["Name"]
 #        util._print(comm, "BGC model: {}".format(name))
 
+## ----------------------------------------------------------------------------------------
+#    def evaluate(self, m3d, dt, qj, tj, yj, u, bj, dj):
+#        pass
+
 # ----------------------------------------------------------------------------------------
-    def evaluate(self, m3d, dt, qj, tj, yj, u, bj, dj):
+    def q(self, m3d, dt, qj, tj, yj, u, bj, dj):
         pass
+#        return qj
+
+#        print("{} {} {} {} {} {}".format(m3d.grid.nv, m3d.load.nvloc, m3d.load.nvprev, m3d.grid.np, m3d.load.nploc, m3d.load.npprev))
+
+#        return yj
 
 
 
