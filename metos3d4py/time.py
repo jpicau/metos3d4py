@@ -16,6 +16,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import time
+import numpy
 from metos3d4py import util
 
 class Time:
@@ -73,7 +75,10 @@ class Time:
         for yi in y0:
             yj.append(yi.duplicate())
             yexpj.append(yi.duplicate())
-            qj.append(yi.duplicate())
+            qi = yi.duplicate()
+            qi.zeroEntries()
+            qi.assemble()
+            qj.append(qi)
         self.yj = yj
         self.yexpj = yexpj
         self.qj = qj
@@ -115,13 +120,14 @@ class Time:
         for i in range(ny):
             yj[i] = yl[i]
 
+        tstart = time.time()
         for j in range(nt):
-            util.debug(m3d, self, "{}".format(i), level=1)
+            tstartdelta = time.time()
             tj = t0 + j*dt
 
             if bgc.use_bgc:
-                util.debug(m3d, self, "use_bgc", level=1)
-                
+#                util.debug(m3d, self, "use_bgc", level=1)
+
                 if bgc.use_boundary:
                     util.debug(m3d, self, "use_boundary", level=1)
                     b = bgc.b
@@ -148,39 +154,75 @@ class Time:
                         dj[id] = alpha*dj[id]                   # VecScale
                         dj[id] = dj[id] + beta*d[id][ibeta]     # VecAXPY
 
+#                qj[0].view()
                 m3d.bgc.q(m3d, dt, qj, tj, yj, u, bj, dj)
+#                yj[0].view()
+#                qj[0].view()
+
+#                import sys
+
+#                print(dt)
+#                print(qj)
+#                print(yj)
+#                qj[0].view()
+#                print(qj[0][:])
+#                print(qj[1][:])
+#                print(yj[0][:])
+#                print(yj[1][:])
+#                print(u)
+#                print(bj)
+#                print(dj)
+#                sys.stdout.flush()
+
+#                sys.exit(1)
+
+            # if bgc.use_bgc:   qj is set to sms
+            # else:             qj stays zero
 
             if tmm.use_tmm:
-                util.debug(m3d, self, "use_tmm", level=1)
-                
+#                util.debug(m3d, self, "use_tmm", level=1)
+
                 if tmm.use_explicit:
-                    util.debug(m3d, self, "use_explicit", level=1)
+#                    util.debug(m3d, self, "use_explicit", level=1)
                     nexp = tmm.nexp
                     Aexp = tmm.Aexp
                     # interpolate
                     alpha, ialpha, beta, ibeta = util.interpolate(nexp, tj)
+#                    print((alpha, ialpha, beta, ibeta))
 #                    Aexpj = alpha * Aexp[ialpha] + beta * Aexp[ibeta]
                     Aexpj = Aexp[ialpha]                # MatCopy
                     Aexpj = alpha*Aexpj                 # MatScale
                     Aexpj = Aexpj + beta*Aexp[ibeta]    # MatAXPY
+                    
+#                    Aexp[ialpha].view()
+#                    print(Aexpj.assembled)
 
                     # apply explicit
 #                    m3d.tmm.apply(m3d, Aexpj, yj)
                     for i in range(ny):
-                        yexpj[i] = Aexpj*yj[i]
+#                        Aexpj.multAdd(yj[i], qj[i], yexpj[i])
+                        yexpj[i] = Aexpj*yj[i] + qj[i]
+
+#                    yexpj[0].view()
+#                    print(yj[0][:10])
+#                    print(qj[0][:10])
+#                    print(yexpj[0][:10])
+#                    print((Aexp[0]*yj[0])[:10])
+
+
 #            else:
 #                # we need to copy at least one time
 #                yexpj = yj
 
-                #add bgc
-                if bgc.use_bgc:
-                    util.debug(m3d, self, "use_bgc", level=1)
-                    for i in range(ny):
-                        yexpj[i] = yexpj[i] + qj[i]
-#                    yexpj = yexpj + qj
+#                #add bgc
+#                if bgc.use_bgc:
+#                    util.debug(m3d, self, "use_bgc", level=1)
+#                    for i in range(ny):
+#                        yexpj[i] = yexpj[i] + qj[i]
+##                    yexpj = yexpj + qj
 
                 if tmm.use_implicit:
-                    util.debug(m3d, self, "use_implicit", level=1)
+#                    util.debug(m3d, self, "use_implicit", level=1)
                     nimp = tmm.nimp
                     Aimp = tmm.Aimp
                     # interpolate
@@ -194,7 +236,12 @@ class Time:
 #                    m3d.tmm.apply(m3d, Aimpj, yj)
 #                    yj = Aimpj*yexpj
                     for i in range(ny):
-                        yj[i] = Aimpj*yj[i]
+                        yj[i] = Aimpj*yexpj[i]
+
+#                    yj[0].view()
+
+            tenddelta = time.time()
+            util.debug(m3d, self, "j: {:05d}, tj: {:f}, delta: {:.3f}, s: {:.3f}".format(j, tj, tenddelta-tstartdelta, tenddelta-tstart), level=1)
 
 
 

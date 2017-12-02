@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import importlib
 import numpy
 import h5py
 from petsc4py import PETSc
@@ -107,6 +108,16 @@ class BGC:
             self.use_bgc = True
             self.name = util.get_key(m3d, self, config, "Name", str)
             
+            # load bgc module
+            # must be placed in metos3d/bgc/<<name>>/<<sources>>
+            # must be compiled with: f2py -c <<sources>> -m <<name>>
+            # call to bgc routine must apply to:
+            # fortran: metos3dbgc(ny, nx, nu, nb, nd, dt, q, t, y, u, b, d)
+            # python: metos3dbgc(dt,q,t,y,u,b,d,[ny,nx,nu,nb,nd])
+            # module name: exchange '-' to '_'
+            modname = self.name.replace("-", "_")
+            self.mod = importlib.import_module("bgc." + self.name + "." + modname)
+
             self.init_parameter(m3d)
             self.init_boundary_data(m3d)
             self.init_domain_data(m3d)
@@ -116,6 +127,9 @@ class BGC:
 
 # ----------------------------------------------------------------------------------------
     def init_parameter(self, m3d):
+
+        self.u = numpy.array([], dtype="f8")    # f2py, no copy as such
+        self.nu = 0
 
         config = self.config.get("Parameter")
         if config is None:
@@ -136,6 +150,10 @@ class BGC:
 # ----------------------------------------------------------------------------------------
     def init_boundary_data(self, m3d):
         
+        self.b = []
+        self.nb = 0
+        self.nbi = []
+
         config = self.config.get("Boundary data")
         if config is None:
             self.use_boundary = False
@@ -166,6 +184,10 @@ class BGC:
             
 # ----------------------------------------------------------------------------------------
     def init_domain_data(self, m3d):
+
+        self.d = []
+        self.nd = 0
+        self.ndi = []
 
         config = self.config.get("Domain data")
         if config is None:
@@ -249,77 +271,171 @@ class BGC:
 #        pass
 
 # ----------------------------------------------------------------------------------------
-    def q(self, m3d, dt, qj, tj, yj, u, bj, dj):
-        pass
-#        return qj
+    def q(self, m3d, dt, q, t, y, u, b, d):
+    
+        ny = m3d.tracer.ny
+        npi = m3d.grid.npi
+        npiloc = m3d.load.npiloc
+        nvprev = m3d.load.nvprev
+        nploc = m3d.load.nploc
+        npprev = m3d.load.npprev
+        indptr = m3d.load.indptr
+        indptrloc = m3d.load.indptrloc
 
-#        print("{} {} {} {} {} {}".format(m3d.grid.nv, m3d.load.nvloc, m3d.load.nvprev, m3d.grid.np, m3d.load.nploc, m3d.load.npprev))
+        din = numpy.array([], dtype="f8")
+        bin = numpy.array([], dtype="f8")
 
-#        return yj
+        # stack lists, access as numpy array then
+        ys = numpy.stack(y)
+        qs = numpy.stack(q)
+#        qs = numpy.stack([qi.array_w[...] for qi in q])
+        if d: ds = numpy.stack(d)
+        if b: bs = numpy.stack(b)
+
+#        print(yin[indptrloc[0]:indptrloc[1]])
+
+#        print(indptr)
+#        print(indptrloc)
+#        print(npi)
+#        print(npiloc)
+
+#        print(type(q[0][indptr[0]:indptr[1]]))
+#        print(q[:])
+#        print([type(vi[indptr[0]:indptr[1]]) for vi in y])
+#            start, end = A.owner_range
+
+#        y[:][start:end]
+#        ip = 0
+#        # local arrays
+#        yin = numpy.stack([yi.array for yi in y]).T
+##        yin = numpy.stack([yi.array for yi in y])
+#        print(yin)
+#        print(yin.flags["F_CONTIGUOUS"])
+
+#        print(numpy.split(y[0].array, indptr[1:-1]))
+
+#        print(yin[indptr[ip]:indptr[ip+1],:].flags["F_CONTIGUOUS"])
+
+#        print(zip(*[yi.array for yi in y]))
+
+#        print(id(yin[indptr[ip]:indptr[ip+1],:]))
+#        print(id(yin[indptr[ip]:indptr[ip+1]]))
+
+#        print(npi[npprev:npprev+nploc])
+#        print(id(y[0][indptr[0]:indptr[1]]))
+#        print(id(y[0][...]))
+#        print(id(y[0].array))
+
+#        import sys
+#        sys.stdout.flush()
+#        sys.exit(1)
+
+#        for ip in range(npprev, npprev+nploc):
+        for ip in range(nploc):
+
+#            q_inout = numpy.zeros((npi[npprev+ip], ny), order="F")
+#            q_inout = numpy.zeros((npiloc[ip], ny), order="F")
+#            q_inout_c = numpy.array(q_inout, order="C")
+#            print(q_inout_c.shape)
+#            print(q_inout.shape)
+#            sys.stdout.flush()
+
+#            # fortran contiguous arrays
+#            yin = numpy.stack([yi[indptr[npprev+ip]:indptr[npprev+ip+1]] for yi in y]).T
+#            if d:
+#                din = numpy.stack([di[indptr[npprev+ip]:indptr[npprev+ip+1]] for di in d]).T
+#            if b:
+#                bin = numpy.stack([bi[npprev+ip] for bi in b]).T
+
+#            print(ip)
+#            print(indptr[ip])
+#            print(yin[indptr[ip]:indptr[ip+1],:])
+#            print(yin[nvprev+indptr[npprev+ip]:nvprev+indptr[npprev+ip+1]])
+
+#            print(indptrloc[ip])
+#            print(indptrloc[ip+1])
+#            print(yin[0][0])
+#            print(yin[:,indptrloc[ip]:indptrloc[ip+1]].T)
+
+            import sys
+
+#            print(ys.shape)
+#            print(ds.shape)
+#            print(bs.shape)
+#            yin = ys[:,indptrloc[ip]:indptrloc[ip+1]]
+#            yin = ys[:,indptrloc[ip]:indptrloc[ip+1]].T
+            yin = numpy.asfortranarray(ys[:,indptrloc[ip]:indptrloc[ip+1]].T)
+            qin = numpy.asfortranarray(qs[:,indptrloc[ip]:indptrloc[ip+1]].T)
+#            print(qs[:,indptrloc[ip]:indptrloc[ip+1]].T.flags["F_CONTIGUOUS"])
+            if d: din = numpy.asfortranarray(ds[:,indptrloc[ip]:indptrloc[ip+1]].T)
+            if b: bin = numpy.asfortranarray(bs[:,ip])
+#            yin = ys[:,indptr[ip]:indptr[ip+1]]
+#            print((indptr[ip], indptr[ip+1]))
+#            print((indptrloc[ip], indptrloc[ip+1]))
+#            print(yin)
+#            print(din)
+#            print(bin)
+#            print(qin)
 
 
-
-
-
-
-
-
-
-
-#            filepath = boundary_path + boundary_list[i][4]                              # file
-#            util._print(comm, "BGC init boundary: Using input file: {}".format(filepath))
+#            import sys
+            sys.stdout.flush()
+#            sys.exit(1)
+            # call fortran model
+            # python: metos3dbgc(dt,q,t,y,u,b,d,[ny,nx,nu,nb,nd])
+            self.mod.metos3dbgc(
+                                dt,
+#                                yin[indptr[ip]:indptr[ip+1],:],
+#                                q[0][indptr[ip]:indptr[ip+1]],
+#                                q_inout,
+                                qin,
+                                t,
+                                yin,
+#                                y[0][indptr[npprev+ip]:indptr[npprev+ip+1]],
+#                                y[0][nvprev+indptr[ip]:nvprev+indptr[ip+1]],
+#                                yin[indptr[ip]:indptr[ip+1],:],
+                                u,
+#                                b[0][npprev+ip],
+#                                numpy.array([], dtype="f8"),
+                                bin,
+#                                d[0][indptr[npprev+ip]:indptr[npprev+ip+1]],
+#                                numpy.array([], dtype="f8"),
+                                din,
+                                ny,
+                                npiloc[ip],
+                                self.nu,
+                                self.nb,
+                                self.nd)
+#            print(qin)
+            # copy back result, global indices
+            for i in range(ny):
+#                q[i][indptrloc[ip]:indptrloc[ip+1]] = qin[:,i]
+                q[i][indptr[npprev+ip]:indptr[npprev+ip+1]] = qin[:,i]
+#            print(qs[:,indptrloc[ip]:indptrloc[ip+1]].shape)
+#            print(qs[:,indptrloc[ip]:indptrloc[ip+1]])
+#            print(qin.shape)
+#            print(qin)
+#            qs[:,indptrloc[ip]:indptrloc[ip+1]] = qin.T
+#            print(qs[:,indptrloc[ip]:indptrloc[ip+1]])
+#            print(q[0][indptrloc[ip]:indptrloc[ip+1]].shape)
+#            print(q[0][indptrloc[ip]:indptrloc[ip+1]])
+##            print(q[:].array.shape)
+#            print("-")
+##            qin = numpy.asfortranarray(qs[:,indptrloc[ip]:indptrloc[ip+1]].T)
 #
-#            try:
-#                file = h5py.File(filepath, "r")
-#            except Exception as e:
-#                util._print_error(comm, "Cannot open file: {}".format(filepath))
-#                util._print_error(comm, e)
-#                sys.exit(1)
+##            print(q_inout)
+            sys.stdout.flush()
+##
+#            sys.exit(1)
+
+        for qi in q:
+            qi.assemble()
 
 
-#            for j in range(nbi[i]):
-#                bw = PETSc.Vec()
-#                bw.create()
-#                bw.setType(PETSc.Vec.Type.STANDARD)
-#                bw.setSizes((nploc, np))
-#                # !!! read in !!!
-#                util.read_from_nc_file(m3d, bw, file, boundary_list[i][0], j)     # boundary data name
-#                # !!! read in !!!
-#                bw.assemble()
-#                b[i].append(bw)
-#            # vector for interpolation
-#            bj.append(b[i][0].duplicate())
-#
-#            file.close()
 
-#            filepath = domain_path + domain_list[i][4]                                  # file
-#            util._print(comm, "BGC init domain: Using input file: {}".format(filepath))
-#
-#            try:
-#                file = h5py.File(filepath, "r")
-#            except Exception as e:
-#                util._print_error(comm, "Cannot open file: {}".format(filepath))
-#                util._print_error(comm, e)
-#                sys.exit(1)
-#
-#            for j in range(ndi[i]):
-#                dw = PETSc.Vec()
-#                dw.create()
-#                dw.setType(PETSc.Vec.Type.STANDARD)
-#                dw.setSizes((nvloc, nv))
-#                # !!! read in !!!
-#                util.read_from_nc_file(m3d, dw, file, domain_list[i][0], j)             # domain data name
-#                # !!! read in !!!
-#                dw.assemble()
-#                d[i].append(dw)
-#            dj.append(d[i][0].duplicate())
-#
-#            file.close()
-#
-##        self.domain_list = domain_list
-##        self.domain_path = domain_path
-#
-#        self.nd = nd
-#        self.ndi = ndi
-#        self.d = d
-#        self.dj = dj
+
+
+
+
+
+

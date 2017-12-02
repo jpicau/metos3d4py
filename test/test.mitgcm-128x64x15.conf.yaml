@@ -33,8 +33,10 @@ Grid:           mitgcm-128x64x15/grid.nc
 
 Tracer:
     Name, Value, Unit, Description:
+#        - [N,   2.14,   mmol P m-3, phosphate]
+        - [I,   1.1,   mmol I m-3, iodine isotope]
+        - [Cs,   1.2,   mmol Cs m-3, caesium isotope]
 #        - [salt,   2.14,   mmol P m-3, phosphate]
-       - [N,   2.14,   mmol P m-3, phosphate]
 #        - [DOP, 1.e-4,  mmol P m-3, dissolved organic phosphorous]
 #        - [so4(h20),   1.e-12,   mmol S m-3, hydrated silicate]
 #        - [total bekloppter tracer name,   3.4566543333232333232323,   auch total beklaoppt, eine ungalublich lange beschreibung]
@@ -48,36 +50,40 @@ Solver:
 
 Time:
     Start:      0.0
-    Count:      1 # 2880
+    Count:      288 # 2880
     Step:       0.0003472222222222
 
 BGC:
-    Name:       N
+#    Name:       N
+    Name:       I-Cs
     Parameter:
         Name, Value, Unit, Description:
-            - [kw,  0.02,   m-1,        attenuation by water]
-            - [muP, 2.0,    d-1,        growth rate]
-            - [KN,  0.5,    mmol P m-3, half saturation phosphate]
-            - [KI,  30.0,   W m-2,      half saturation light]
-            - [b,   0.858,  1,          martin exponent]
-    Boundary data:
-        Path:   mitgcm-128x64x15/
-        Name, Count, Description, Unit, File:
-            - [fice, 12, ice cover fraction, 1,      fice.nc]
+            - [start, 77.0, d, day polution started]
+            - [end, 90.0, d, day polution ended]
+            - [amount, 1000.0, 1, amount of polution]
+#            - [kw,  0.02,   m-1,        attenuation by water]
+#            - [muP, 2.0,    d-1,        growth rate]
+#            - [KN,  0.5,    mmol P m-3, half saturation phosphate]
+#            - [KI,  30.0,   W m-2,      half saturation light]
+#            - [b,   0.858,  1,          martin exponent]
+#    Boundary data:
+#        Path:   mitgcm-128x64x15/
+#        Name, Count, Description, Unit, File:
+#            - [fice, 12, ice cover fraction, 1,      fice.nc]
 #            - [wind, 12, wind speed at 10m,  m s-1,  wind.nc]
-#            - [dust, 12, dust deposition,    kg m-2, dust.nc]
-    Domain data:
-        Path:   mitgcm-128x64x15/
-        Name, Count, Description, Unit, File:
-            - [salt, 12, salinity,       psu,            salt.nc]
+##            - [dust, 12, dust deposition,    kg m-2, dust.nc]
+#    Domain data:
+#        Path:   mitgcm-128x64x15/
+#        Name, Count, Description, Unit, File:
+#            - [salt, 12, salinity,       psu,            salt.nc]
 #            - [temp, 12, temperature,    degree celcius, temp.nc]
 
 TMM:
 #    Path:       mitgcm-15x64x128-360d-3h/
     Path:       mitgcm-128x64x15/
     # Name, Count, File
-    Explicit:   [Aexp, 1, Aexp.nc]
-    Implicit:   [Aimp, 1, Aimp.nc]
+    Explicit:   [Aexp, 12, Aexp.nc]
+    Implicit:   [Aimp, 12, Aimp.nc]
 
 
 

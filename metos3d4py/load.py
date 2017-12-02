@@ -123,6 +123,15 @@ class Load:
         self.nvloc = vcount[rank]
         self.nvprev = vprev[rank]
         
+        
+        # index pointers for bgc
+#        numpy.append(0, numpy.cumsum(nnzrow)).astype("i4")
+        self.npiloc = npi[self.npprev:self.npprev+self.nploc]
+        self.indptr = numpy.append(0, numpy.cumsum(npi))
+        self.indptrloc = numpy.append(0, numpy.cumsum(self.npiloc))
+#        self.np_indptr = numpy.append(0, numpy.cumsum(npi[self.npprev:self.npprev+self.nploc]))
+#        self.
+
         # compute max diff to optimal
         self.opt = opt = float(nv)/size
         self.maxdiff = maxdiff = numpy.amax(numpy.abs(numpy.array(vcount) - opt))
